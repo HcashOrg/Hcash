@@ -1,0 +1,13 @@
+a=["hello", "China"]
+b = json.dumps(a)
+pprint('b=', b)
+c = [b]
+d = json.dumps(c)
+pprint('d=', d)
+e = json.loads(d)
+pprint('e=', e)
+pprint('e[1]=', e[1])
+f = json.loads(tostring(e[1]))
+pprint('f=', f)
+pprint('f[1]=', f[1])
+pprint('f[2]=', f[2])
