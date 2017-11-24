@@ -2615,7 +2615,7 @@ namespace hsrcore {
 
 
 
-````````````````````
+
 		uint32_t ChainDatabase::GetNextTargetRequired(BlockIdType pindexLast, bool fProofOfStake)
 		{
 			CBigNum bnTargetLimit = fProofOfStake ? CBigNum(~(uint256(0)) >> 40) : CBigNum(~(uint256(0)) >> 20);
