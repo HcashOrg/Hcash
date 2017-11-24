@@ -2615,10 +2615,10 @@ namespace hsrcore {
 
 
 
-
+````````````````````
 		uint32_t ChainDatabase::GetNextTargetRequired(BlockIdType pindexLast, bool fProofOfStake)
 		{
-			CBigNum bnTargetLimit = fProofOfStake ? CBigNum(~(uint256(0)) >> 20) : CBigNum(~(uint256(0)) >> 12);
+			CBigNum bnTargetLimit = fProofOfStake ? CBigNum(~(uint256(0)) >> 40) : CBigNum(~(uint256(0)) >> 20);
 			if (pindexLast == BlockIdType())//genesis block
 				return bnTargetLimit.GetCompact();
 			
