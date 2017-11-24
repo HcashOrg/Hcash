@@ -340,6 +340,48 @@ namespace hsrcore {
                 return fc::ripemd160();
             } FC_CAPTURE_AND_RETHROW()
         }
+		std::pair<int32_t,int32_t> ChainInterface::get_current_production_info(bool is_coinstake)const
+		{/*
+			pos_count = 10,
+			pos_previous_cache = 11,
+			pow_count = 12,
+			pow_previous_cache=13*/
+			try {
+				PropertyIdType propcount;
+				PropertyIdType propprev;
+				if (is_coinstake)
+				{
+					propcount = PropertyIdType::pos_count;
+					propprev = PropertyIdType::pos_previous_cache;
+				}
+				else
+				{
+					propcount = PropertyIdType::pow_count;
+					propprev = PropertyIdType::pow_previous_cache;
+				}
+
+				const oPropertyEntry entry = get_property_entry(propcount);
+				if (entry.valid())
+				{
+					int32_t temp_count = entry->value.as<int32_t>();
+					int32_t temp_previous_cache = 0;
+					if (temp_count >= 200)
+					{
+						const oPropertyEntry entry1= get_property_entry(propprev);
+						if (entry1.valid())
+							temp_previous_cache = entry1->value.as<int32_t>();
+						else
+							temp_previous_cache = -1;
+						
+					}
+					return std::make_pair(temp_count, temp_previous_cache);
+					
+				}
+				return std::make_pair<int32_t, int32_t >(-1, 0);
+				
+				
+			} FC_CAPTURE_AND_RETHROW()
+		}
 
         void ChainInterface::set_statistics_enabled(const bool enabled)
         {

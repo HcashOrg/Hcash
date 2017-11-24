@@ -46,15 +46,16 @@
 
 #define HSR_DEFAULT_TRANSACTION_FEE                         1 // XTS
 #define HSR_DEFAULT_TRANSACTION_EXPIRATION_SEC              (60*60)
-#define HSR_DEFAULT_CONTRACT_MARGIN                         10 * HSR_BLOCKCHAIN_PRECISION 
+#define HSR_DEFAULT_CONTRACT_MARGIN                         1 * HSR_BLOCKCHAIN_PRECISION 
 #define HSR_PRODUCTE_BLOCK_INTERAL							60
+#define HSR_ADJUST_DIFFICULTY_INTERAL						200
  // To decrease granularity of timestamp
  // Supposed to be 2^n-1
 // i don't know why need this
 #define HSR_STAKE_TIMESTAMP_MASK							15
 #define POW_PROTOCOL_VERSION								80000
-#define HSR_MIN_CHANGE_BALANCE_UPDATE_TIME					5 * HSR_BLOCKCHAIN_PRECISION
-#define HSR_POS_BALANCE_PRODUCTE_INTERAL					0
+#define HSR_MIN_CHANGE_BALANCE_UPDATE_TIME					2 * HSR_BLOCKCHAIN_PRECISION
+#define HSR_POS_BALANCE_PRODUCTE_INTERAL					30
 
 /**
  *  The maximum amount that can be issued for user assets.

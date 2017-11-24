@@ -278,9 +278,11 @@ namespace hsrcore {
                 *
                 * @return void
                 */
-                void                                        update_random_seed(const SecretHashType& new_secret,
+                void                                        update_random_seed(const SignedBlockHeader& cur_block_header,
                     const PendingChainStatePtr& pending_state,
                     oBlockEntry& block_entry)const;
+				void                                        update_block_production_info(const SignedBlockHeader & block_header,
+					const PendingChainStatePtr& pending_state)const;
 				void update_block_modify(const SignedBlockHeader & block_header)const;
                 /**  save_undo_state
                 * Save current state and block_id into undo_state map

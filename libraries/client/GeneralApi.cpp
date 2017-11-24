@@ -37,6 +37,8 @@ namespace hsrcore {
                 info["blockchain_head_block_timestamp"] = variant();
                 info["blockchain_head_block_id"] = variant();
                 time_point_sec head_block_timestamp;
+				
+
                 if (head_block_num > 0)
                 {
                     head_block_timestamp = _chain_db->now();
@@ -44,11 +46,17 @@ namespace hsrcore {
                     info["blockchain_head_block_timestamp"] = head_block_timestamp;
                     info["blockchain_head_block_id"] = _chain_db->get_head_block_id();
                 }
+				const auto pow_production_info = _chain_db->get_current_production_info(0);
+				const auto pos_production_info = _chain_db->get_current_production_info(1);
+				info["pos_count"] = pos_production_info.first;
+				info["pos_prev_num"] = pos_production_info.second;
+				info["pow_count"] = pow_production_info.first;
+				info["pow_prev_num"] = pow_production_info.second;
 
-                info["blockchain_average_delegate_participation"] = variant();
-                const auto participation = _chain_db->get_average_delegate_participation();
-                if (participation <= 100)
-                    info["blockchain_average_delegate_participation"] = participation;
+                //info["blockchain_average_delegate_participation"] = variant();
+                //const auto participation = _chain_db->get_average_delegate_participation();
+               // if (participation <= 100)
+                //    info["blockchain_average_delegate_participation"] = participation;
 
                 info["blockchain_confirmation_requirement"] = _chain_db->get_required_confirmations();
 
@@ -57,18 +65,18 @@ namespace hsrcore {
                 if (share_entry.valid())
                     info["blockchain_share_supply"] = share_entry->current_share_supply;
 
-                const auto blocks_left = HSR_BLOCKCHAIN_NUM_DELEGATES - (head_block_num % HSR_BLOCKCHAIN_NUM_DELEGATES);
-                info["blockchain_blocks_left_in_round"] = blocks_left;
+                //const auto blocks_left = HSR_BLOCKCHAIN_NUM_DELEGATES - (head_block_num % HSR_BLOCKCHAIN_NUM_DELEGATES);
+                //info["blockchain_blocks_left_in_round"] = blocks_left;
 
-                info["blockchain_next_round_time"] = variant();
-                info["blockchain_next_round_timestamp"] = variant();
-                if (head_block_num > 0)
-                {
-                    const auto current_round_timestamp = blockchain::get_slot_start_time(now);
-                    const auto next_round_timestamp = current_round_timestamp + (blocks_left * HSR_BLOCKCHAIN_BLOCK_INTERVAL_SEC);
-                    info["blockchain_next_round_time"] = (next_round_timestamp - now).to_seconds();
-                    info["blockchain_next_round_timestamp"] = next_round_timestamp;
-                }
+                //info["blockchain_next_round_time"] = variant();
+                //info["blockchain_next_round_timestamp"] = variant();
+//                 if (head_block_num > 0)
+//                 {
+//                     const auto current_round_timestamp = blockchain::get_slot_start_time(now);
+//                     const auto next_round_timestamp = current_round_timestamp + (blocks_left * HSR_BLOCKCHAIN_BLOCK_INTERVAL_SEC);
+//                     info["blockchain_next_round_time"] = (next_round_timestamp - now).to_seconds();
+//                     info["blockchain_next_round_timestamp"] = next_round_timestamp;
+//                 }
 
                 info["blockchain_random_seed"] = _chain_db->get_current_random_seed();
 
@@ -108,8 +116,8 @@ namespace hsrcore {
                 info["wallet_scan_progress"] = variant();
 
                 info["wallet_block_production_enabled"] = variant();
-                info["wallet_next_block_production_time"] = variant();
-                info["wallet_next_block_production_timestamp"] = variant();
+//                 info["wallet_next_block_production_time"] = variant();
+//                 info["wallet_next_block_production_timestamp"] = variant();
 
                 if (is_open)
                 {
@@ -141,17 +149,17 @@ namespace hsrcore {
 
                         const auto enabled_delegates = _wallet->get_my_delegates(enabled_delegate_status);
                         const auto block_production_enabled = !enabled_delegates.empty();
-                        info["wallet_block_production_enabled"] = block_production_enabled;
+                        info["wallet_block_production_enabled"] = fposgenerate;
 
-                        if (block_production_enabled)
-                        {
-                            const auto next_block_timestamp = _wallet->get_next_producible_block_timestamp(enabled_delegates);
-                            if (next_block_timestamp.valid())
-                            {
-                                info["wallet_next_block_production_time"] = (*next_block_timestamp - now).to_seconds();
-                                info["wallet_next_block_production_timestamp"] = *next_block_timestamp;
-                            }
-                        }
+//                         if (block_production_enabled)
+//                         {
+//                             const auto next_block_timestamp = _wallet->get_next_producible_block_timestamp(enabled_delegates);
+//                             if (next_block_timestamp.valid())
+//                             {
+//                                 info["wallet_next_block_production_time"] = (*next_block_timestamp - now).to_seconds();
+//                                 info["wallet_next_block_production_timestamp"] = *next_block_timestamp;
+//                             }
+//                         }
                     }
                 }
 

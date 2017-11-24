@@ -726,6 +726,7 @@ namespace hsrcore {
             }
             void ClientImpl::delegate_loop()
             {
+				return;
                 if (!_wallet->is_open() || _wallet->is_locked())
                     return;
 

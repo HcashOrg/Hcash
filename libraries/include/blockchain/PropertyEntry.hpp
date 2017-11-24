@@ -5,31 +5,35 @@
 namespace hsrcore {
     namespace blockchain {
 
-        enum class PropertyIdType : uint8_t
-        {
-            database_version = 0,
-            chain_id = 1,
-            last_asset_id = 2,
-            last_account_id = 3,
-            active_delegate_list_id = 4,
-            last_random_seed_id = 5,
-            statistics_enabled = 6,
-            /**
-            *  N = num delegates
-            *  Initial condition = 2N
-            *  Every time a block is produced subtract 1
-            *  Every time a block is missed add 2
-            *  Maximum value is 2N, Min value is 0
-            *
-            *  Defines how many blocks you must wait to
-            *  be 'confirmed' assuming that at least
-            *  60% of the blocks in the last 2 rounds
-            *  are present. Less than 60% and you
-            *  are on the minority chain.
-            */
-            confirmation_requirement = 7,
-            dirty_markets = 8,
-            node_vm_enabled = 9
+		enum class PropertyIdType : uint8_t
+		{
+			database_version = 0,
+			chain_id = 1,
+			last_asset_id = 2,
+			last_account_id = 3,
+			active_delegate_list_id = 4,
+			last_random_seed_id = 5,
+			statistics_enabled = 6,
+			/**
+			*  N = num delegates
+			*  Initial condition = 2N
+			*  Every time a block is produced subtract 1
+			*  Every time a block is missed add 2
+			*  Maximum value is 2N, Min value is 0
+			*
+			*  Defines how many blocks you must wait to
+			*  be 'confirmed' assuming that at least
+			*  60% of the blocks in the last 2 rounds
+			*  are present. Less than 60% and you
+			*  are on the minority chain.
+			*/
+			confirmation_requirement = 7,
+			dirty_markets = 8,
+			node_vm_enabled = 9,
+			pos_count = 10,
+			pos_previous_cache = 11,
+			pow_count = 12,
+			pow_previous_cache=13
         };
 
         struct PropertyEntry;

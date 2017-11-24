@@ -465,7 +465,7 @@ namespace hsrcore {
             if (iter != _contract_id_to_storage.end()) return iter->second;
             const ChainInterfacePtr prev_state = _prev_state.lock();
             if (!prev_state) return oContractStorage();
-            const oContractStorage entry = prev_state->lookup<ContractStorageEntry>(id);
+            oContractStorage entry = prev_state->lookup<ContractStorageEntry>(id);
             if (entry.valid() && _contract_id_remove.count(id) == 0) return entry;
             return oContractStorage();
         }

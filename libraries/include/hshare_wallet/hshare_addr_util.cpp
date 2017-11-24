@@ -266,7 +266,7 @@ namespace hshare
 
 			}
 			if (!strErr.empty())
-				printf("%s\n", strErr);
+				printf("%s\n", strErr.c_str());
 		}
 		pcursor->close();
 
@@ -376,7 +376,7 @@ namespace hshare
 
 			}
 			if (!strErr.empty())
-				printf("%s\n", strErr);
+				printf("%s\n", strErr.c_str());
 		}
 		pcursor->close();
 

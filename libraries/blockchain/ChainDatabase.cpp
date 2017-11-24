@@ -403,7 +403,7 @@ namespace hsrcore {
                     self->store_property_entry(PropertyIdType::last_account_id, variant(account_id));
                     self->set_active_delegates(self->next_round_active_delegates());
                     self->set_statistics_enabled(statistics_enabled);
-                    self->set_node_vm_enabled(false);
+                    self->set_node_vm_enabled(true);
 
                     return chain_id;
                 } FC_CAPTURE_AND_RETHROW((genesis_file)(statistics_enabled))
@@ -1168,20 +1168,126 @@ namespace hsrcore {
 
 
 
-            void ChainDatabaseImpl::update_random_seed(const SecretHashType& new_secret,
+            void ChainDatabaseImpl::update_random_seed(const SignedBlockHeader& cur_block_header,
                 const PendingChainStatePtr& pending_state,
                 oBlockEntry& entry)const
             {
                 try {
                     const auto current_seed = pending_state->get_current_random_seed();
+
                     fc::sha512::encoder enc;
-                    fc::raw::pack(enc, new_secret);
+					if (cur_block_header.is_coinstake)
+					{
+						fc::raw::pack(enc, cur_block_header.coin_base);
+						fc::raw::pack(enc, cur_block_header.timestamp);
+					}
+					else
+					{
+						fc::raw::pack(enc, cur_block_header.nNonce);
+					}
                     fc::raw::pack(enc, current_seed);
                     const auto& new_seed = fc::ripemd160::hash(enc.result());
                     pending_state->store_property_entry(PropertyIdType::last_random_seed_id, variant(new_seed));
                     if (entry.valid()) entry->random_seed = new_seed;
-                } FC_CAPTURE_AND_RETHROW((new_secret)(entry))
+                } FC_CAPTURE_AND_RETHROW((cur_block_header)(entry))
             }
+
+			void ChainDatabaseImpl::update_block_production_info(const SignedBlockHeader & block_header,
+				const PendingChainStatePtr& pending_state)const
+			{
+				try {
+					vector<std::pair<int32_t, int32_t>> production_info_vec;
+					production_info_vec.reserve(2);
+					production_info_vec.push_back(pending_state->get_current_production_info(0));
+					production_info_vec.push_back(pending_state->get_current_production_info(1));
+					if ((production_info_vec[0].first + production_info_vec[1].first) != (block_header.block_num - 1))
+					{
+						//rebuild index
+						int32_t pos_prev_num,pow_prev_num;
+						int32_t pos_count, pow_count;
+						pos_count = pow_count = pos_prev_num = pow_prev_num = 0;
+						for (int i = 1; i < block_header.block_num; ++i)
+						{
+							auto header_id = pending_state->get_block_id(i);
+							auto header = pending_state->get_block_header(header_id);
+							if (header.is_coinstake)
+							{
+								pos_count += 1;
+							}
+								
+							else
+							{
+								pow_count += 1;
+							}
+						}
+						if (pos_count >= HSR_ADJUST_DIFFICULTY_INTERAL || pow_count >= HSR_ADJUST_DIFFICULTY_INTERAL)
+						{
+							int temp_pos_count = 0;
+							int temp_pow_count = 0;
+							for (int j = block_header.block_num - 1; j > 0; --j)
+							{
+								auto header_id = pending_state->get_block_id(j);
+								auto header = pending_state->get_block_header(header_id);
+								if (header.is_coinstake)
+								{
+									temp_pos_count += 1;
+									
+								}
+								else
+								{
+									temp_pow_count += 1;
+								}
+								if (temp_pos_count == HSR_ADJUST_DIFFICULTY_INTERAL)
+								{
+									pos_prev_num = j;
+									
+								}
+								if (temp_pow_count == HSR_ADJUST_DIFFICULTY_INTERAL)
+								{
+									pow_prev_num = j;
+								}
+								if (temp_pos_count >= HSR_ADJUST_DIFFICULTY_INTERAL && temp_pow_count >= HSR_ADJUST_DIFFICULTY_INTERAL)
+									break;
+
+							}
+						}
+						pending_state->store_property_entry(PropertyIdType::pos_count, variant(pos_count));
+						pending_state->store_property_entry(PropertyIdType::pos_previous_cache, variant(pos_prev_num));
+						pending_state->store_property_entry(PropertyIdType::pow_count, variant(pow_count));
+						pending_state->store_property_entry(PropertyIdType::pow_previous_cache, variant(pow_prev_num));
+					}
+					auto production_info = pending_state->get_current_production_info(block_header.is_coinstake);
+					int32_t count_new = production_info.first + 1 ;
+					int32_t temp_prev_num = production_info.second;
+					if (count_new >= HSR_ADJUST_DIFFICULTY_INTERAL)
+					{
+						for (int i = temp_prev_num + 1; i < block_header.block_num; ++i)
+						{
+							auto header_id = pending_state->get_block_id(i);
+							auto header = pending_state->get_block_header(header_id);
+							if (header.is_coinstake == block_header.is_coinstake)
+							{
+								temp_prev_num = i;
+								break;
+							}
+						}
+					}
+					if (block_header.is_coinstake)
+					{
+						pending_state->store_property_entry(PropertyIdType::pos_count, variant(count_new));
+						pending_state->store_property_entry(PropertyIdType::pos_previous_cache, variant(temp_prev_num));
+					}
+					else
+					{
+						pending_state->store_property_entry(PropertyIdType::pow_count, variant(count_new));
+						pending_state->store_property_entry(PropertyIdType::pow_previous_cache, variant(temp_prev_num));
+					}
+
+
+				} FC_CAPTURE_AND_RETHROW((block_header))
+
+			}
+
 
             void ChainDatabaseImpl::update_active_delegate_list(const uint32_t block_num,
                 const PendingChainStatePtr& pending_state)const
@@ -1282,6 +1388,8 @@ namespace hsrcore {
 
 						save_undo_state(block_data.block_num, block_id, pending_state);
 						self->store_extend_status(block_id, 1);
+						update_random_seed(block_data, pending_state, block_entry);
+						update_block_production_info(block_data, pending_state);
 
 						// TODO: Verify idempotency
 						pending_state->apply_changes();
@@ -1290,7 +1398,7 @@ namespace hsrcore {
 						mark_included(block_id, true);
 
 						update_head_block(block_data, block_id);
-
+						
 						clear_pending(block_data);
 
 						_block_num_to_id_db.store(block_data.block_num, block_id);
@@ -1448,7 +1556,7 @@ namespace hsrcore {
             :my(new detail::ChainDatabaseImpl())
         {
             my->self = this;
-            generating_block = false;
+            generating_block = true;
         }
 
         ChainDatabase::~ChainDatabase()
@@ -2505,13 +2613,15 @@ namespace hsrcore {
 			
 		}
 
+
+
+
 		uint32_t ChainDatabase::GetNextTargetRequired(BlockIdType pindexLast, bool fProofOfStake)
 		{
-
 			CBigNum bnTargetLimit = fProofOfStake ? CBigNum(~(uint256(0)) >> 20) : CBigNum(~(uint256(0)) >> 12);
-
 			if (pindexLast == BlockIdType())//genesis block
 				return bnTargetLimit.GetCompact();
+			
 			auto last_block = GetLastBlockHeader(pindexLast, fProofOfStake);
 			if (last_block.previous == BlockIdType())//first block
 				return bnTargetLimit.GetCompact();
@@ -2519,23 +2629,65 @@ namespace hsrcore {
 			auto prev_block = GetLastBlockHeader(last_block.previous, fProofOfStake);
 			if (prev_block.previous == BlockIdType())//second block
 				return bnTargetLimit.GetCompact();
+			auto production_info = get_current_production_info(fProofOfStake);
 
+			if (production_info.first == -1 || production_info.second == -1 )
+			{
+				FC_THROW_EXCEPTION(illegal_production_info, "illegal cache production info please wait a new block");
+			}
+			
 
-			int64_t nTargetSpacing = HSR_PRODUCTE_BLOCK_INTERAL;
-			int64_t nActualSpacing = (last_block.timestamp - prev_block.timestamp).to_seconds();
+			int64_t nTargetSpacing = HSR_PRODUCTE_BLOCK_INTERAL *HSR_ADJUST_DIFFICULTY_INTERAL;
 			CBigNum bnNew;
-			bnNew.SetCompact(last_block.nbits);
-			int64_t nInterval = nTargetTimespan / nTargetSpacing;
-			int64_t t1 = ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
-			
-			bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
-			bnNew /= ((nInterval + 1) * nTargetSpacing);
+			if (production_info.first%HSR_ADJUST_DIFFICULTY_INTERAL != 0 && production_info.first >0)
+			{
+				return last_block.nbits;
+				
+			}
+			auto two_hundred_prev_block = get_block_header(production_info.second);
 
+			if (two_hundred_prev_block.is_coinstake != fProofOfStake)
+			{
+				FC_THROW_EXCEPTION(illegal_production_info, "illegal cache production info please wait a new block");
+			}
+
+
+			int64_t nActualSpacing = (last_block.timestamp - two_hundred_prev_block.timestamp).to_seconds();
+			bnNew.SetCompact(last_block.nbits);
+			if (nActualSpacing > nTargetSpacing * 4)
+			{
+				nActualSpacing = nTargetSpacing * 4;
+			}
+			else if (nActualSpacing < nTargetSpacing / 4)
+			{
+				nActualSpacing = nTargetSpacing / 4;
+			}
 			
+			bnNew *= nActualSpacing;
+			bnNew /= nTargetSpacing;
+
+
 			if (bnNew <= 0 || bnNew > bnTargetLimit)
 				bnNew = bnTargetLimit;
-
 			return bnNew.GetCompact();
+
+
+			/////////////old version////////////////
+			
+// 			int64_t nActualSpacing = (last_block.timestamp - prev_block.timestamp).to_seconds();
+// 			CBigNum bnNew;
+// 			bnNew.SetCompact(last_block.nbits);
+// 			int64_t nInterval = nTargetTimespan / nTargetSpacing;
+// 			int64_t t1 = ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
+// 			
+// 			bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
+// 			bnNew /= ((nInterval + 1) * nTargetSpacing);
+// 
+// 			
+// 			if (bnNew <= 0 || bnNew > bnTargetLimit)
+// 				bnNew = bnTargetLimit;
+// 
+// 			return bnNew.GetCompact();
 		}
 
 
@@ -3685,6 +3837,7 @@ namespace hsrcore {
 				auto temp_balance_entry = get_balance_entry(temp_balance.id());
 				if (temp_balance_entry.valid())
 				{
+					auto ttt = *temp_balance_entry;
 					temp_trx_id = temp_balance_entry->last_update_transaction_id;
 				}
 				else
