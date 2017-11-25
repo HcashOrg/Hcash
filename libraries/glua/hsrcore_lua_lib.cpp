@@ -62,14 +62,14 @@ namespace hsrcore
 
             static const char *globalvar_whitelist[] = {
                 "print", "pprint", "table", "string", "time", "math", "json", "type", "require", "Array", "Stream",
-                "import_contract_from_address", "import_contract", "emit", "is_valid_address",
+                "import_contract_from_address", "import_contract", "emit", "is_valid_address", "is_valid_contract_address",
                 "hsrcore", "storage", "repl", "exit", "exit_repl", "self", "debugger", "exit_debugger",
                 "caller", "caller_address",
                 "contract_transfer", "contract_transfer_to", "transfer_from_contract_to_address",
 				"transfer_from_contract_to_public_account",
                 "get_chain_random", "get_transaction_fee",
                 "get_transaction_id", "get_header_block_num", "wait_for_future_random", "get_waited",
-                "get_contract_balance_amount", "get_chain_now", "get_current_contract_address", "get_system_asset_symbol",
+                "get_contract_balance_amount", "get_chain_now", "get_current_contract_address", "get_system_asset_symbol", "get_prev_call_frame_contract_address",
                 "pairs", "ipairs", "pairsByKeys", "collectgarbage", "error", "getmetatable", "_VERSION",
                 "tostring", "tojsonstring", "tonumber", "tointeger", "todouble", "totable",
                 "next", "rawequal", "rawlen", "rawget", "rawset", "select",
@@ -287,8 +287,10 @@ next: (table) => bool
                 { "get_contract_balance_amount", "(string, string) => int" },
                 { "get_chain_now", "() => int" },
                 { "get_current_contract_address", "() => string" },
+				{ "get_prev_call_frame_contract_address", "() => string" },
 				{ "get_system_asset_symbol", "() => string" },
 				{ "is_valid_address", "(string) => bool" },
+				{ "is_valid_contract_address", "(string) => bool"},
                 { "pairs", "(table) => object" },
                 { "ipairs", "(table) => object" },
 				{ "pairsByKeys", "(table) => object" },
@@ -411,7 +413,7 @@ next: (table) => bool
             static int get_contract_address_lua_api(lua_State *L)
             {
                 const char *cur_contract_id = get_contract_id_in_api(L);
-                if (!cur_contract_id)
+                if (!cur_contract_id || strlen(cur_contract_id)<1)
                 {
                     hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "can't get current contract address");
                     return 0;
@@ -419,6 +421,18 @@ next: (table) => bool
                 lua_pushstring(L, cur_contract_id);
                 return 1;
             }
+
+			static int get_prev_call_frame_contract_address_lua_api(lua_State *L)
+			{
+				auto prev_contract_id = get_prev_call_frame_contract_id_in_api(L);
+				if (!prev_contract_id || strlen(prev_contract_id)< 1 )
+				{
+					lua_pushnil(L);
+					return 1;
+				}
+				lua_pushstring(L, prev_contract_id);
+				return 1;
+			}
 
 			static int get_system_asset_symbol(lua_State *L)
 			{
@@ -656,6 +670,19 @@ next: (table) => bool
 				}
 				auto address = luaL_checkstring(L, 1);
 				auto result = hsrcore::lua::api::global_glua_chain_api->is_valid_address(L, address);
+				lua_pushboolean(L, result ? 1 : 0);
+				return 1;
+			}
+
+			static int is_valid_contract_address(lua_State *L)
+			{
+				if (lua_gettop(L) < 1 || !lua_isstring(L, 1))
+				{
+					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "is_valid_contract_address need a param of address string");
+					return 0;
+				}
+				auto address = luaL_checkstring(L, 1);
+				auto result = hsrcore::lua::api::global_glua_chain_api->is_valid_contract_address(L, address);
 				lua_pushboolean(L, result ? 1 : 0);
 				return 1;
 			}
@@ -1157,6 +1184,7 @@ end
                     add_global_c_function(L, "get_chain_now", get_chain_now);
                     add_global_c_function(L, "get_chain_random", get_chain_random);
                     add_global_c_function(L, "get_current_contract_address", get_contract_address_lua_api);
+					add_global_c_function(L, "get_prev_call_frame_contract_address", get_prev_call_frame_contract_address_lua_api);
                     add_global_c_function(L, "get_transaction_id", get_transaction_id);
                     add_global_c_function(L, "get_header_block_num", get_header_block_num);
                     add_global_c_function(L, "wait_for_future_random", wait_for_future_random);
@@ -1164,6 +1192,7 @@ end
                     add_global_c_function(L, "get_transaction_fee", get_transaction_fee);
                     add_global_c_function(L, "emit", emit_hsrcore_event);
 					add_global_c_function(L, "is_valid_address", is_valid_address);
+					add_global_c_function(L, "is_valid_contract_address", is_valid_contract_address);
 					add_global_c_function(L, "get_system_asset_symbol", get_system_asset_symbol);
                 }
                 return L;
@@ -1668,6 +1697,7 @@ end
 							bool hasXkh = it->type == '(';
 							if (hasXkh)
 								++it;
+							/*
 							if (it == token_parser->end() || it->type != glua::parser::LTK_STRING || it->token.length() < 1)
 							{
 								if(throw_exception)
@@ -1676,6 +1706,7 @@ end
 									*changed = false;
 								return origin_code;
 							}
+							*/
 						}
 					}
 					code = token_parser->dump();
@@ -2379,6 +2410,18 @@ end
 				return contract_id_stack->top();
             }
 
+			std::string get_prev_call_frame_contract_id(lua_State *L)
+			{
+				auto contract_id_stack = get_using_contract_id_stack(L, true);
+				if (!contract_id_stack || contract_id_stack->size()<2)
+					return "";
+				auto top = contract_id_stack->top();
+				contract_id_stack->pop();
+				auto prev = contract_id_stack->top();
+				contract_id_stack->push(top);
+				return prev;
+			}
+
             GluaTableMapP create_managed_lua_table_map(lua_State *L)
             {
                 return luaL_create_lua_table_map_in_memory_pool(L);
@@ -2688,6 +2731,13 @@ end
                 return nullptr;
 				*/
             }
+
+			const char *get_prev_call_frame_contract_id_in_api(lua_State *L)
+			{
+				const auto &contract_id = get_prev_call_frame_contract_id(L);
+				auto contract_id_str = malloc_and_copy_string(L, contract_id.c_str());
+				return contract_id_str;
+			}
 
         }
     }
