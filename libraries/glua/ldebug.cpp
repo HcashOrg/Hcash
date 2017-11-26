@@ -92,7 +92,7 @@ LUA_API void lua_set_run_error(lua_State *L, const char *msg)
 			size = LUA_VM_EXCEPTION_STRNG_MAX_LENGTH - 1;
 		strncpy(L->runerror, msg, LUA_VM_EXCEPTION_STRNG_MAX_LENGTH);
 		L->runerror[size] = '\0';
-		global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, msg);
+		global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, msg);
 	}
 }
 
@@ -667,7 +667,7 @@ void luaG_runerror(lua_State *L, const char *fmt, ...) {
     va_end(argp);
     if (isLua(ci))  /* if Lua function, add source:line information */
         luaG_addinfo(L, msg, ci_func(ci)->p->source, currentline(ci));
-	global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, msg);
+	global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, msg);
     luaG_errormsg(L, msg);
 }
 

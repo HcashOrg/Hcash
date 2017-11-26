@@ -50,7 +50,7 @@ LUAMOD_API int (luaopen_bit32)(lua_State *L);
 #define LUA_MATHLIBNAME	"math"
 LUAMOD_API int (luaopen_math)(lua_State *L);
 
-#define LUA_THINKYOUNGLIBNAME "hsrcore"
+#define LUA_HSRCORELIBNAME "hsrcore"
 LUAMOD_API int(luaopen_hsrcore)(lua_State *L);
 
 #define LUA_DBLIBNAME	"debug"

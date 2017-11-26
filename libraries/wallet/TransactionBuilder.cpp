@@ -478,7 +478,11 @@ TransactionBuilder& TransactionBuilder::finalize(const bool pay_fee, const VoteS
             trx.expiration = blockchain::now() + _wimpl->self->get_transaction_expiration();
 
         _wimpl->set_delegate_slate(trx, strategy);
-
+		if (memo_message != "")
+		{
+			trx.AddtionImessage(memo_message);
+			//AddtionImessage(memo_message);
+		}
         transaction_entry.entry_id = trx.id();
         transaction_entry.created_time = blockchain::now();
         transaction_entry.received_time = transaction_entry.created_time;

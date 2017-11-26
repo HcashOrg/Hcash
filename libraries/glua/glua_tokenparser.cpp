@@ -461,14 +461,14 @@ namespace glua
 					}
 					else 
 					{
-                        global_glua_chain_api->throw_exception(_L, THINKYOUNG_API_COMPILE_ERROR, std::string("too long token").c_str());
+                        global_glua_chain_api->throw_exception(_L, HSRCORE_API_COMPILE_ERROR, std::string("too long token").c_str());
 						return;
 					}
                 }
                 switch (_current_char(code))
                 {
                 case EOF_TOKEN_CHAR:
-                    global_glua_chain_api->throw_exception(_L, THINKYOUNG_API_COMPILE_ERROR, "undefined long %s (starting at line %d)", what, line);
+                    global_glua_chain_api->throw_exception(_L, HSRCORE_API_COMPILE_ERROR, "undefined long %s (starting at line %d)", what, line);
                     return;
                 case ']':
                 {

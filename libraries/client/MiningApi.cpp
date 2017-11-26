@@ -40,10 +40,10 @@ namespace hsrcore {
 				miningdata.chain = "main";
 				miningdata.currentblocksize = nBlockSize;
 				miningdata.currentblocktx = nBlockTx;
-				auto blockheader = _chain_db->GetLastBlockHeader(_chain_db->get_head_block_id(), 0);
-				miningdata.proof_of_work = GetDiffculty(blockheader);
-				blockheader = _chain_db->GetLastBlockHeader(_chain_db->get_head_block_id(), 1);
-				miningdata.proof_of_stake = GetDiffculty(blockheader);
+				auto blockheader = _chain_db->get_head_block();
+
+				miningdata.proof_of_work = GetDiffculty(blockheader,0);
+				miningdata.proof_of_stake = GetDiffculty(blockheader,1);
 				miningdata.errors = "";
 				miningdata.generate = fgenerate;
 				miningdata.genproclimit = nThread;
@@ -62,10 +62,9 @@ namespace hsrcore {
 			MiningDifficulty ClientImpl::get_difficulty()
 			{
 				MiningDifficulty diff;
-				auto blockheader = _chain_db->GetLastBlockHeader(_chain_db->get_head_block_id(), 0);
-				diff.proof_of_work = GetDiffculty(blockheader);
-				blockheader = _chain_db->GetLastBlockHeader(_chain_db->get_head_block_id(), 1);
-				diff.proof_of_stake = GetDiffculty(blockheader);
+				auto blockheader = _chain_db->get_head_block();
+				diff.proof_of_work = GetDiffculty(blockheader,0);
+				diff.proof_of_stake = GetDiffculty(blockheader,1);
 				return diff;
 			}
 			/**
@@ -123,7 +122,7 @@ namespace hsrcore {
 			*
 			* @return bool
 			*/
-			bool ClientImpl::submit_block(const std::string& HashNoNonce, uint64_t Nonce)
+			bool ClientImpl::submit_block(const std::string& HashNoNonce, uint64_t Nonce,uint64_t Extra_Nonce)
 			{
 				BlockHeader temp_block;
 
@@ -131,6 +130,7 @@ namespace hsrcore {
 				{
 					auto pblock = mapNewBlock[HashNoNonce];
 					pblock.nNonce = Nonce;
+					pblock.extra_nonce = Extra_Nonce;
 					_wallet->CheckWork(pblock);
 					_wallet->pow_sign_block(pblock);
 					on_new_block(pblock, pblock.id(), false);
@@ -138,6 +138,89 @@ namespace hsrcore {
 					return true;
 				}
 				
+
+
+				return false;
+			}
+
+			bool  hex2bin(const char *pSrc, vector<char> &pDst, unsigned int nSrcLength, unsigned int &nDstLength)
+			{
+				if (pSrc == 0)
+				{
+					return false;
+				}
+
+				nDstLength = 0;
+
+				if (pSrc[0] == 0) // nothing to convert  
+					return 0;
+
+				// 计算需要转换的字节数  
+				for (int j = 0; pSrc[j]; j++)
+				{
+					if (isxdigit(pSrc[j]))
+						nDstLength++;
+				}
+
+				// 判断待转换字节数是否为奇数，然后加一  
+				if (nDstLength & 0x01) nDstLength++;
+				nDstLength /= 2;
+
+				if (nDstLength > nSrcLength)
+					return false;
+
+				nDstLength = 0;
+
+				int phase = 0;
+				char temp_char;
+
+				for (int i = 0; pSrc[i]; i++)
+				{
+					if (!isxdigit(pSrc[i]))
+						continue;
+
+					unsigned char val = pSrc[i] - (isdigit(pSrc[i]) ? 0x30 : (isupper(pSrc[i]) ? 0x37 : 0x57));
+
+					if (phase == 0)
+					{
+						temp_char = val << 4;
+						phase++;
+					}
+					else
+					{
+						temp_char |= val;
+						phase = 0;
+						pDst.push_back(temp_char);
+						nDstLength++;
+					}
+				}
+
+				return true;
+			}
+
+			bool ClientImpl::submit_blockex(const std::string& data)
+			{
+				BlockHeader temp_block;
+				std::vector<char> all_data;
+				all_data.reserve(data.size() / 2);
+				unsigned int nDstLength;
+				hex2bin(data.c_str(), all_data, data.size(), nDstLength);
+				temp_block = fc::raw::unpack<BlockHeader>(all_data);
+
+				auto HashNoNonce = temp_block.GetNoNonceHash().GetHex();
+				if (mapNewBlock.count(HashNoNonce))
+				{
+					auto pblock = mapNewBlock[HashNoNonce];
+					pblock.nNonce = temp_block.nNonce;
+					pblock.extra_nonce = temp_block.extra_nonce;
+					pblock.reserver_data2 = temp_block.reserver_data2;
+					_wallet->CheckWork(pblock);
+					_wallet->pow_sign_block(pblock);
+					on_new_block(pblock, pblock.id(), false);
+					_p2p_node->broadcast(BlockMessage(pblock));
+					return true;
+				}
+
 
 
 				return false;
@@ -183,8 +266,8 @@ namespace hsrcore {
 				stakeinfo.enabled = fposgenerate;
 				stakeinfo.currentblocksize = nBlockSize;
 				stakeinfo.currentblocktx = nBlockTx;
-				auto block_header = _chain_db->GetLastBlockHeader(_chain_db->get_head_block_id(), 1);
-				stakeinfo.difficulty = GetDiffculty(block_header);
+				auto block_header = _chain_db->get_head_block();
+				stakeinfo.difficulty = GetDiffculty(block_header,1);
 				stakeinfo.weight = nWeight;
 				stakeinfo.netstakeweight = nNetworkWeight;
 				stakeinfo.nExpectedTime = nExpectedTime;
@@ -251,7 +334,7 @@ namespace hsrcore {
 							}
 							FC_ASSERT(_client->coinbase != PublicKeyType(), "please set coinbase first");
 
-							FullBlock pblock(_client->_chain_db->generate_block(now, _client->coinbase,_client->_delegate_config));
+							FullBlock pblock(_client->_chain_db->generate_block(now, (Address)_client->coinbase,_client->_delegate_config));
 
 							_client->nBlockSize = pblock.block_size();
 							_client->nBlockTx = pblock.user_transactions.size();
@@ -298,7 +381,7 @@ namespace hsrcore {
 										static boost::mutex _update_speed;
 										{
 											_update_speed.lock();
-									
+											pblock.timestamp = fc::time_point::now();
 											int64_t nLimiter = 1;
 											int64_t nDelta = (fc::time_point::now() - _client->nHPSTimerStart).to_seconds();
 											if (nDelta > 0 && nLimiter <= 10 + 1)
@@ -394,13 +477,13 @@ namespace hsrcore {
 						{
 							try {
 
-								PublicKeyType tempcoinbase;
+								Address tempcoinbase;
 								int flag = 0;
 								for (auto entry : iter->second)
 								{
 									if (entry.balance > 0)
 									{
-										tempcoinbase = _client->_wallet->get_owner_public_key(iter->first);
+										tempcoinbase = (Address)_client->_wallet->get_owner_public_key(iter->first);
 										flag = 1;
 										break;
 									}
@@ -409,7 +492,7 @@ namespace hsrcore {
 								{
 									const auto now = fc::time_point_sec(fc::time_point::now());
 									int64_t nFees;
-									FullBlock pblock(_client->_chain_db->generate_block(now, tempcoinbase, _client->_delegate_config, true));
+									FullBlock pblock(_client->_chain_db->generate_block(now, tempcoinbase, _client->_delegate_config,0, true));
 									_client->nBlockSize = pblock.block_size();
 									_client->nBlockTx = pblock.user_transactions.size();
 
@@ -428,6 +511,44 @@ namespace hsrcore {
 						{
 						}
 						}
+						auto all_multisig_account_entrys = _client->_wallet->get_all_multisig();
+						for (auto iter = all_multisig_account_entrys.begin(); iter != all_multisig_account_entrys.end(); ++iter)
+						{
+							try
+							{
+								Address tempcoinbase;
+								auto entry = _client->_chain_db->get_balance_entry(*iter);
+								if (entry.valid()&&entry->balance > 0)
+								{
+									tempcoinbase = *iter;
+									auto tempprivate_key = _client->_wallet->get_private_key(*entry->owners().begin());
+
+									const auto now = fc::time_point_sec(fc::time_point::now());
+									int64_t nFees;
+									FullBlock pblock(_client->_chain_db->generate_block(now, tempcoinbase, _client->_delegate_config, 1, true));
+									_client->nBlockSize = pblock.block_size();
+									_client->nBlockTx = pblock.user_transactions.size();
+
+									if (_client->_chain_db->CheckStake(pblock))
+									{
+										_client->_wallet->pow_sign_block(pblock);
+										_client->on_new_block(pblock, pblock.id(), false);
+										_client->_p2p_node->broadcast(BlockMessage(pblock));
+
+									}
+									
+
+									
+								}
+								
+							}
+							catch (...)
+							{
+								
+							}
+							
+						}
+
 						MilliSleep(500);
 						
 					}
@@ -490,18 +611,23 @@ namespace hsrcore {
 				minerStakeThread->create_thread(boost::bind(&ThreadStakeMiner,this));
 			}
 
-			float ClientImpl::GetDiffculty(SignedBlockHeader& block_header)
+			float ClientImpl::GetDiffculty(SignedBlockHeader& block_header,bool is_coinstake)
 			{
 				if (block_header.block_num == 0)
 					return 1.0;
 
 				if (block_header.previous == BlockIdType())
 					return 1.0;
+				uint32_t tempbits;
+				if (is_coinstake)
+					tempbits = block_header.sbits;
+				else
+					tempbits = block_header.nbits;
 
-				int nShift = (block_header.nbits >> 24) & 0xff;
-
+				int nShift = (tempbits >> 24) & 0xff;
+				
 				double dDiff =
-					(double)0x0000ffff / (double)(block_header.nbits & 0x00ffffff);
+					(double)0x0000ffff / (double)(tempbits & 0x00ffffff);
 
 				while (nShift < 29)
 				{
@@ -533,7 +659,7 @@ namespace hsrcore {
 					{
 						if (pindexPrevStake.block_num)
 						{
-							dStakeKernelsTriedAvg += GetDiffculty(pindexPrevStake) * 4294967296.0;
+							dStakeKernelsTriedAvg += GetDiffculty(pindexPrevStake,1) * 4294967296.0;
 							nStakesTime += (pindexPrevStake.timestamp - block_header.timestamp).to_seconds();
 							nStakesHandled++;
 						}
@@ -546,7 +672,7 @@ namespace hsrcore {
 				double result = 0;
 
 				if (nStakesTime)
-					result = dStakeKernelsTriedAvg / nStakesTime;
+					result = dStakeKernelsTriedAvg / (double)nStakesTime;
 				result *= HSR_STAKE_TIMESTAMP_MASK + 1;
 
 				return result;

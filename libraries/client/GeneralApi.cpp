@@ -48,10 +48,8 @@ namespace hsrcore {
                 }
 				const auto pow_production_info = _chain_db->get_current_production_info(0);
 				const auto pos_production_info = _chain_db->get_current_production_info(1);
-				info["pos_count"] = pos_production_info.first;
-				info["pos_prev_num"] = pos_production_info.second;
-				info["pow_count"] = pow_production_info.first;
-				info["pow_prev_num"] = pow_production_info.second;
+				info["pos_block_count"] = pos_production_info;
+				info["pow_block_count"] = pow_production_info;
 
                 //info["blockchain_average_delegate_participation"] = variant();
                 //const auto participation = _chain_db->get_average_delegate_participation();

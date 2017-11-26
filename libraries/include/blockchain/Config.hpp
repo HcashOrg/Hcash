@@ -109,6 +109,7 @@
 // for contract
 #define  CONTRACT_ADDRESS_PREFIX "C" 
 #define  SCRIPT_ID_PREFIX "S" 
+#define  MULTI_ADDRESS_PREFIX "M"
 
 #define  CONTRACT_MAX_BYTECODE_SIZE   (1 * 1024 * 1024)  //just set to the limit of block size
 #define  CONTRACT_MAX_NAME_SIZE  32 

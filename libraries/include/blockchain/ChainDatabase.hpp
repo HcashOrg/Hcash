@@ -250,8 +250,8 @@ namespace hsrcore {
             *
             * @return FullBlock
             */
-            FullBlock                  generate_block(const time_point_sec block_timestamp,PublicKeyType coin_base,
-                const DelegateConfig& config = DelegateConfig(), bool is_proof_of_stake=false);
+            FullBlock                  generate_block(const time_point_sec block_timestamp,  Address coin_base,
+                const DelegateConfig& config = DelegateConfig(), uint32_t is_multisig_account=0, bool is_proof_of_stake=false);
 
 
 			/** calculate next block difficulty
@@ -259,9 +259,9 @@ namespace hsrcore {
 			* @param  pindexLast  head block id
 			* @param  fProofOfStake  whether proof of stake
 			*
-			* @return uint32_t
-			*/
-			uint32_t GetNextTargetRequired(BlockIdType pindexLast, bool fProofOfStake);
+			* @return std::pair<uint32_t,uint32_t>  pow nbits ,pos sbits
+ 			*/
+			std::pair<uint32_t,uint32_t> GetNextTargetRequired(BlockIdType pindexLast);
 
 
 			/** get last block header by block type

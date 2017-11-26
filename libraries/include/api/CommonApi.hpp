@@ -1449,22 +1449,83 @@ namespace hsrcore {
              * Loads the private key into the specified account. Returns which account it was actually imported to.
              *
              * @param acc_name the account name of the private key (string, required)
-             * @param infile hshare wallet file to import private key (filename, required)
+             * @param infile hshare wallet file to import private key (path, required)
              *
              * @return bool
              */
-            virtual bool wallet_import_hshare_private_key(const std::string& acc_name, const fc::path& infile) = 0;
+            virtual bool wallet_import_hshare_private_key(const std::string& acc_name, const hsrcore::blockchain::FilePath& infile) = 0;
             /**
              * Loads the encrypted private key into the specified account. Returns which account it was actually
              * imported to.
              *
              * @param passwd the password to decrypt the key in wallet file (passphrase, required)
              * @param acc_name the account name of the private key (string, required)
-             * @param infile hshare wallet file to import private key (filename, required)
+             * @param infile hshare wallet file to import private key (path, required)
              *
              * @return bool
              */
-            virtual bool wallet_import_hshare_encrypted_private_key(const std::string& passwd, const std::string& acc_name, const fc::path& infile) = 0;
+            virtual bool wallet_import_hshare_encrypted_private_key(const std::string& passwd, const std::string& acc_name, const hsrcore::blockchain::FilePath& infile) = 0;
+            /**
+             * Review a transaction and add a signature.
+             *
+             * @param builder A transaction builder object created by a wallet. If null, tries to use builder in file.
+             *                (transaction_builder, required)
+             * @param broadcast Try to broadcast this transaction? (bool, optional, defaults to false) (bool, optional,
+             *                  defaults to false)
+             *
+             * @return transaction_builder
+             */
+            virtual hsrcore::wallet::TransactionBuilder wallet_builder_add_signature(const hsrcore::wallet::TransactionBuilder& builder, bool broadcast = fc::json::from_string("false").as<bool>()) = 0;
+            /**
+             * Review a transaction in a builder file and add a signature.
+             *
+             * @param builder_path builder_path If specified, will write builder here instead of to
+             *                     DATA_DIR/transactions/latest.trx (path, required)
+             * @param broadcast Try to broadcast this transaction? (bool, optional, defaults to false) (bool, optional,
+             *                  defaults to false)
+             *
+             * @return transaction_builder
+             */
+            virtual hsrcore::wallet::TransactionBuilder wallet_builder_file_add_signature(const hsrcore::blockchain::FilePath& builder_path, bool broadcast = fc::json::from_string("false").as<bool>()) = 0;
+            /**
+             * transfer to multisig account.
+             *
+             * @param amount how much to transfer (string, required) (string, required)
+             * @param asset_symbol which asset (string, required) (asset_symbol, required)
+             * @param from_account TITAN name to withdraw from (string, required) (string, required)
+             * @param m Required number of signatures (uint32_t, required) (uint32_t, required)
+             * @param addresses List of possible addresses for signatures (address_list, required) (address_list,
+             *                  required)
+             * @param memo_message a memo to store with the transaction (information, optional, defaults to "")
+             *
+             * @return transaction_entry
+             */
+            virtual hsrcore::wallet::WalletTransactionEntry wallet_multisig_deposit(const std::string& amount, const std::string& asset_symbol, const std::string& from_account, uint32_t m, const std::vector<hsrcore::blockchain::Address>& addresses, const hsrcore::blockchain::Imessage& memo_message = fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>()) = 0;
+            /**
+             * get multisig account address.
+             *
+             * @param asset_symbol which asset (string, required) (asset_symbol, required)
+             * @param m Required number of signatures (uint32_t, required) (uint32_t, required)
+             * @param addresses List of possible addresses for signatures (address_list, required) (address_list,
+             *                  required)
+             *
+             * @return address
+             */
+            virtual hsrcore::blockchain::Address wallet_multisig_get_address(const std::string& asset_symbol, uint32_t m, const std::vector<hsrcore::blockchain::Address>& addresses) = 0;
+            /**
+             * transfer to normal account from multisig account.
+             *
+             * @param amount how much to transfer (string, required) (string, required)
+             * @param asset_symbol which asset (string, required) (asset_symbol, required)
+             * @param from multisig balance ID to withdraw from (address, required) (address, required)
+             * @param to_address address to receive funds (address, required) (address, required)
+             * @param memo_message a memo to store with the transaction (information, optional, defaults to "")
+             * @param builder_path If specified, will write builder here instead of to DATA_DIR/transactions/latest.trx
+             *                     (path, optional, defaults to "")
+             *
+             * @return transaction_builder
+             */
+            virtual hsrcore::wallet::TransactionBuilder wallet_multisig_withdraw_start(const std::string& amount, const std::string& asset_symbol, const hsrcore::blockchain::Address& from, const hsrcore::blockchain::Address& to_address, const hsrcore::blockchain::Imessage& memo_message = fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>(), const hsrcore::blockchain::FilePath& builder_path = fc::json::from_string("\"\"").as<hsrcore::blockchain::FilePath>()) = 0;
             /**
              * Returns version number and associated information for this client.
              *
@@ -2006,10 +2067,19 @@ namespace hsrcore {
              *
              * @param HashNoNonce blockchain no nonce hash (std::string, required)
              * @param Nonce blockchain nonce (uint64_t, required)
+             * @param Extra_Nonce blockchain extra nonce (uint64_t, required)
              *
              * @return bool
              */
-            virtual bool submit_block(const std::string& HashNoNonce, uint64_t Nonce) = 0;
+            virtual bool submit_block(const std::string& HashNoNonce, uint64_t Nonce, uint64_t Extra_Nonce) = 0;
+            /**
+             * submit block!.
+             *
+             * @param data blockchain no nonce hash (std::string, required)
+             *
+             * @return bool
+             */
+            virtual bool submit_blockex(const std::string& data) = 0;
             /**
              * set coinbase !.
              *

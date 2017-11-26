@@ -414,7 +414,7 @@ namespace hsrcore {
             auto pretty = client->get_wallet()->to_pretty_trx(entry);
 
             const std::vector<PrettyTransaction> transactions = { pretty };
-            out << pretty_transaction_list(transactions, client);
+            out << pretty_transaction_list(transactions, client) << "\n";
         }
 
         void PrintResult::f_wallet_transfer_2(std::ostream& out, const fc::variants& arguments, const fc::variant& result, ClientRawPtr client)
@@ -434,7 +434,7 @@ namespace hsrcore {
                 entry.ledger_entries[j].memo = UTF8ToGBK(entry.ledger_entries[j].memo);
 #endif 
 
-            out << fc::json::to_pretty_string(entry);
+            out << fc::json::to_pretty_string(entry) << "\n";
         }
 
         void PrintResult::f_blockchain_get_pretty_transaction(std::ostream& out, const fc::variants& arguments, const fc::variant& result, ClientRawPtr client)
@@ -444,7 +444,7 @@ namespace hsrcore {
             for (int i = 0; i < pretty.ledger_entries.size(); ++i)
                 pretty.ledger_entries[i].memo = UTF8ToGBK(pretty.ledger_entries[i].memo);
 #endif
-            out << fc::json::to_pretty_string(pretty);
+            out << fc::json::to_pretty_string(pretty) << "\n";
         }
 
         void PrintResult::f_blockchain_get_transaction(std::ostream& out, const fc::variants& arguments, const fc::variant& result, ClientRawPtr client)
@@ -459,7 +459,7 @@ namespace hsrcore {
                     trx_pair.second.trx.operations[i] = memo_op;
                 }
 #endif
-            out << fc::json::to_pretty_string(trx_pair);
+            out << fc::json::to_pretty_string(trx_pair) << "\n";
         }
 
         void PrintResult::f_blockchain_get_block_transactions(std::ostream& out, const fc::variants& arguments, const fc::variant& result, ClientRawPtr client)
@@ -475,7 +475,7 @@ namespace hsrcore {
                         iter->second.trx.operations[i] = memo_op;
                     }
 #endif
-            out << fc::json::to_pretty_string(trx_map);
+            out << fc::json::to_pretty_string(trx_map)<<"\n";
         }
 
         void PrintResult::f_wallet_list(std::ostream& out, const fc::variants& arguments, const fc::variant& result, ClientRawPtr client)
@@ -533,7 +533,7 @@ namespace hsrcore {
         void PrintResult::f_blockchain_list_delegates(std::ostream& out, const fc::variants& arguments, const fc::variant& result, ClientRawPtr client)
         {
             const auto& delegate_entrys = result.as<vector<AccountEntry>>();
-            out << pretty_delegate_list(delegate_entrys, client);
+            out << pretty_delegate_list(delegate_entrys, client)<<"\n";
         }
 
         void PrintResult::f_get_contract_info(std::ostream& out, const fc::variants& arguments, const fc::variant& result, ClientRawPtr client)
@@ -542,7 +542,7 @@ namespace hsrcore {
 #ifdef WIN32
             contract_info.description = UTF8ToGBK(contract_info.description);
 #endif
-            out << fc::json::to_pretty_string(contract_info);
+            out << fc::json::to_pretty_string(contract_info) << "\n";
         }
 
         void PrintResult::f_blockchain_list_accounts(std::ostream& out, const fc::variants& arguments, const fc::variant& result, ClientRawPtr client)

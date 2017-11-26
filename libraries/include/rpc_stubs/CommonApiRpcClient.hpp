@@ -194,8 +194,13 @@ namespace hsrcore {
             std::vector<hsrcore::blockchain::Asset> wallet_transfer_to_contract_testing(double amount_to_transfer, const std::string& asset_symbol, const std::string& from_account_name, const std::string& to_contract) override;
             vector<string> wallet_get_contracts(const std::string& account_name = fc::json::from_string("\"\"").as<std::string>()) override;
             void wallet_scan_contracts() override;
-            bool wallet_import_hshare_private_key(const std::string& acc_name, const fc::path& infile) override;
-            bool wallet_import_hshare_encrypted_private_key(const std::string& passwd, const std::string& acc_name, const fc::path& infile) override;
+            bool wallet_import_hshare_private_key(const std::string& acc_name, const hsrcore::blockchain::FilePath& infile) override;
+            bool wallet_import_hshare_encrypted_private_key(const std::string& passwd, const std::string& acc_name, const hsrcore::blockchain::FilePath& infile) override;
+            hsrcore::wallet::TransactionBuilder wallet_builder_add_signature(const hsrcore::wallet::TransactionBuilder& builder, bool broadcast = fc::json::from_string("false").as<bool>()) override;
+            hsrcore::wallet::TransactionBuilder wallet_builder_file_add_signature(const hsrcore::blockchain::FilePath& builder_path, bool broadcast = fc::json::from_string("false").as<bool>()) override;
+            hsrcore::wallet::WalletTransactionEntry wallet_multisig_deposit(const std::string& amount, const std::string& asset_symbol, const std::string& from_account, uint32_t m, const std::vector<hsrcore::blockchain::Address>& addresses, const hsrcore::blockchain::Imessage& memo_message = fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>()) override;
+            hsrcore::blockchain::Address wallet_multisig_get_address(const std::string& asset_symbol, uint32_t m, const std::vector<hsrcore::blockchain::Address>& addresses) override;
+            hsrcore::wallet::TransactionBuilder wallet_multisig_withdraw_start(const std::string& amount, const std::string& asset_symbol, const hsrcore::blockchain::Address& from, const hsrcore::blockchain::Address& to_address, const hsrcore::blockchain::Imessage& memo_message = fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>(), const hsrcore::blockchain::FilePath& builder_path = fc::json::from_string("\"\"").as<hsrcore::blockchain::FilePath>()) override;
             fc::variant_object about() const override;
             fc::variant_object get_info() const override;
             void stop() override;
@@ -257,7 +262,8 @@ namespace hsrcore {
             MiningDifficulty get_difficulty() override;
             bool set_generate(bool fGenerate, uint32_t nThreads = fc::json::from_string("-1").as<uint32_t>()) override;
             MiningWorkPackage get_work() override;
-            bool submit_block(const std::string& HashNoNonce, uint64_t Nonce) override;
+            bool submit_block(const std::string& HashNoNonce, uint64_t Nonce, uint64_t Extra_Nonce) override;
+            bool submit_blockex(const std::string& data) override;
             bool set_coinbase(const std::string& account_name) override;
             StakingInfo get_staking_info() override;
             fc::path compile_script(const fc::path& filename) const override;

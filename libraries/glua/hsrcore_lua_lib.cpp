@@ -357,13 +357,13 @@ next: (table) => bool
             {
 				if (lua_gettop(L) < 3)
 				{
-					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "transfer_from_contract_to_public_account need 3 arguments");
+					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "transfer_from_contract_to_public_account need 3 arguments");
 					return 0;
 				}
 				const char *contract_id = get_contract_id_in_api(L);
 				if (nullptr == contract_id)
 				{
-					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "contract transfer must be called in contract api");
+					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "contract transfer must be called in contract api");
 					return 0;
 				}
 				const char *to_account_name = luaL_checkstring(L, 1);
@@ -371,7 +371,7 @@ next: (table) => bool
 				auto amount_str = luaL_checkinteger(L, 3);
 				if (amount_str <= 0)
 				{
-					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "amount must be positive");
+					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "amount must be positive");
 					return 0;
 				}
 				lua_Integer transfer_result = hsrcore::lua::api::global_glua_chain_api->transfer_from_contract_to_public_account(L, contract_id, to_account_name, asset_type, amount_str);
@@ -386,13 +386,13 @@ next: (table) => bool
             {
                 if (lua_gettop(L) < 3)
                 {
-                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "transfer_from_contract_to_address need 3 arguments");
+                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "transfer_from_contract_to_address need 3 arguments");
                     return 0;
                 }
                 const char *contract_id = get_contract_id_in_api(L);
                 if (!contract_id)
                 {
-                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "contract transfer must be called in contract api");
+                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "contract transfer must be called in contract api");
                     return 0;
                 }
                 const char *to_address = luaL_checkstring(L, 1);
@@ -400,7 +400,7 @@ next: (table) => bool
                 auto amount_str = luaL_checkinteger(L, 3);
                 if (amount_str <= 0)
                 {
-                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "amount must be positive");
+                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "amount must be positive");
                     return 0;
                 }
                 lua_Integer transfer_result = hsrcore::lua::api::global_glua_chain_api->transfer_from_contract_to_address(L, contract_id, to_address, asset_type, amount_str);
@@ -413,7 +413,7 @@ next: (table) => bool
                 const char *cur_contract_id = get_contract_id_in_api(L);
                 if (!cur_contract_id)
                 {
-                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "can't get current contract address");
+                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "can't get current contract address");
                     return 0;
                 }
                 lua_pushstring(L, cur_contract_id);
@@ -431,7 +431,7 @@ next: (table) => bool
             {
                 if (lua_gettop(L) > 0 && !lua_isstring(L, 1))
                 {
-                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR,
+                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR,
                         "get_contract_balance_amount need 1 string argument of contract address");
                     return 0;
                 }
@@ -439,14 +439,14 @@ next: (table) => bool
 				auto contract_address = luaL_checkstring(L, 1);
                 if (strlen(contract_address) < 1)
                 {
-                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR,
+                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR,
                         "contract address can't be empty");
                     return 0;
                 }
 
                 if (lua_gettop(L) < 2 || !lua_isstring(L, 2))
                 {
-                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "get balance amount need asset symbol");
+                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "get balance amount need asset symbol");
                     return 0;
                 }
 
@@ -561,7 +561,7 @@ next: (table) => bool
             {
                 auto msg = luaL_checkstring(L, -1);
                 if (nullptr != msg)
-                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, msg);
+                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, msg);
                 return 0;
             }
 
@@ -601,13 +601,13 @@ next: (table) => bool
             {
                 if (lua_gettop(L) < 1 || !lua_isinteger(L, 1))
                 {
-                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "wait_for_future_random need a integer param");
+                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "wait_for_future_random need a integer param");
                     return 0;
                 }
                 auto next = luaL_checkinteger(L, 1);
                 if (next <= 0)
                 {
-                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "wait_for_future_random first param must be positive number");
+                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "wait_for_future_random first param must be positive number");
                     return 0;
                 }
                 auto result = hsrcore::lua::api::global_glua_chain_api->wait_for_future_random(L, (int)next);
@@ -622,7 +622,7 @@ next: (table) => bool
             {
                 if (lua_gettop(L) < 1 || !lua_isinteger(L, 1))
                 {
-                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "get_waited need a integer param");
+                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "get_waited need a integer param");
                     return 0;
                 }
                 auto num = luaL_checkinteger(L, 1);
@@ -635,7 +635,7 @@ next: (table) => bool
             {
                 if (lua_gettop(L) < 2 && (!lua_isstring(L, 1) || !lua_isstring(L, 2)))
                 {
-                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "emit need 2 string params");
+                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "emit need 2 string params");
                     return 0;
                 }
                 const char *contract_id = get_contract_id_in_api(L);
@@ -651,7 +651,7 @@ next: (table) => bool
 			{
 				if (lua_gettop(L) < 1 || !lua_isstring(L, 1))
 				{
-					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "is_valid_address need a param of address string");
+					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "is_valid_address need a param of address string");
 					return 0;
 				}
 				auto address = luaL_checkstring(L, 1);
@@ -908,7 +908,7 @@ next: (table) => bool
 						lua_pop(L, 1);
 						return 0;
 					}
-					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "attempt to update a read-only table!");
+					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "attempt to update a read-only table!");
 					lua_pop(L, 2); // stack: t, k, v
 					return 0;
 				}
@@ -933,7 +933,7 @@ next: (table) => bool
             {
 				if(!lua_isstring(L, 2))
 				{
-					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "only string can be storage key");
+					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "only string can be storage key");
 					L->force_stopping = true;
 					lua_pushnil(L);
 					return 1;
@@ -973,7 +973,7 @@ next: (table) => bool
             {
 				if (!lua_isstring(L, 2))
 				{
-					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "only string can be storage key");
+					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "only string can be storage key");
 					L->force_stopping = true;
 					lua_pushnil(L);
 					return 1;
@@ -1584,7 +1584,7 @@ end
 						for (const auto & item : type_checker.errors())
 							ss << item.second << "\n";
 						if(throw_exception)
-							hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_COMPILE_ERROR, ss.str().c_str());
+							hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_COMPILE_ERROR, ss.str().c_str());
 						if (error && throw_exception)
 						{
 							lcompile_error_set(L, error, ss.str().c_str());
@@ -1622,7 +1622,7 @@ end
 							} catch(glua::core::GluaException const &e)
 							{
 								if (throw_exception)
-									hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_COMPILE_ERROR, e.what());
+									hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_COMPILE_ERROR, e.what());
 								if (error && throw_exception)
 								{
 									lcompile_error_set(L, error, e.what());
@@ -1842,7 +1842,7 @@ end
 				}
 				catch (std::exception e)
 				{
-					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_PARSER_ERROR, e.what());
+					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_PARSER_ERROR, e.what());
 					if (changed)
 						*changed = false;
 					return origin_code;
@@ -2277,10 +2277,10 @@ end
                     if (error && strlen(error) > 0)
                     {
 						lua_set_compile_error(L, error);
-                        hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_COMPILE_ERROR, error);
+                        hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_COMPILE_ERROR, error);
                     }
                     else
-                        hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_COMPILE_ERROR, "compile error");
+                        hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_COMPILE_ERROR, "compile error");
                     return false;
                 }
                 if (hsrcore::lua::api::global_glua_chain_api->has_exception(L))
@@ -2288,7 +2288,7 @@ end
                 if (!luaL_get_contract_apis(L, stream, error))
                 {
 					lcompile_error_get(L, error);
-                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_COMPILE_ERROR, "compile error");
+                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_COMPILE_ERROR, "compile error");
                     return false;
                 }
                 lcompile_error_get(L, error);
@@ -2301,7 +2301,7 @@ end
 					{
 						lua_set_compile_error(L, "contract's id/name/storage property can't be api name");
 						lcompile_error_get(L, error);
-						hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_COMPILE_ERROR, error);
+						hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_COMPILE_ERROR, error);
 						return false;
 					}
 				}
@@ -2317,7 +2317,7 @@ end
                 // check contract bytecode
                 if (!check_contract_bytecode_stream(L, stream, error))
                 {
-                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_COMPILE_ERROR, "compile error when check contract bytecode");
+                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_COMPILE_ERROR, "compile error when check contract bytecode");
                     return false;
                 }
                 lua_getglobal(L, "last_return");
@@ -2327,7 +2327,7 @@ end
                     const char *error_str = "contract code must end with return a module/table";
                     if (error)
                         strcpy(error, error_str);
-                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, error_str);
+                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, error_str);
                     return false;
                 }
                 else
@@ -2340,7 +2340,7 @@ end
                         const char *error_str = "contract must have init function";
                         if (error)
                             strcpy(error, error_str);
-                        hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, error_str);
+                        hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, error_str);
                         return false;
                     }
                     lua_pop(L, 1); // pop init
@@ -2537,7 +2537,7 @@ end
 
 			bool is_calling_contract_init_api(lua_State *L)
             {
-				const auto &state_node = get_lua_state_value_node(L, THINKYOUNG_CONTRACT_INITING);
+				const auto &state_node = get_lua_state_value_node(L, HSRCORE_CONTRACT_INITING);
 				return state_node.type == LUA_STATE_VALUE_INT && state_node.value.int_value > 0;
             }
 
@@ -2556,10 +2556,10 @@ end
             {
                 GluaStateValue state_value;
                 state_value.int_value = 1;
-                set_lua_state_value(L, THINKYOUNG_CONTRACT_INITING, state_value, LUA_STATE_VALUE_INT);
+                set_lua_state_value(L, HSRCORE_CONTRACT_INITING, state_value, LUA_STATE_VALUE_INT);
                 int status = execute_contract_api_by_address(L, contract_address, "init", arg1, result_json_string);
                 state_value.int_value = 0;
-                set_lua_state_value(L, THINKYOUNG_CONTRACT_INITING, state_value, LUA_STATE_VALUE_INT);
+                set_lua_state_value(L, HSRCORE_CONTRACT_INITING, state_value, LUA_STATE_VALUE_INT);
                 return status == 0;
             }
             bool execute_contract_start_by_address(lua_State *L, const char *contract_address, const char *arg1, std::string *result_json_string)
@@ -2571,10 +2571,10 @@ end
             {
                 GluaStateValue state_value;
                 state_value.int_value = 1;
-                set_lua_state_value(L, THINKYOUNG_CONTRACT_INITING, state_value, LUA_STATE_VALUE_INT);
+                set_lua_state_value(L, HSRCORE_CONTRACT_INITING, state_value, LUA_STATE_VALUE_INT);
                 int status = execute_contract_api_by_stream(L, stream, "init", arg1, result_json_string);
                 state_value.int_value = 0;
-                set_lua_state_value(L, THINKYOUNG_CONTRACT_INITING, state_value, LUA_STATE_VALUE_INT);
+                set_lua_state_value(L, HSRCORE_CONTRACT_INITING, state_value, LUA_STATE_VALUE_INT);
                 return status == 0;
             }
             bool execute_contract_start(lua_State *L, const char *name, GluaModuleByteStreamP stream, const char *arg1, std::string *result_json_string)
@@ -2682,7 +2682,7 @@ end
                 }
                 else
                 {
-                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "the api must have first local self, or need be defined as <M>:<api_name>");
+                    hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "the api must have first local self, or need be defined as <M>:<api_name>");
                 }
                 lua_pop(L, 1);
                 return nullptr;

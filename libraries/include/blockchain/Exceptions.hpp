@@ -45,6 +45,7 @@ namespace hsrcore {
 		FC_DECLARE_DERIVED_EXCEPTION(invalid_block_nbits, hsrcore::blockchain::blockchain_exception, 30033, "invalid block nbits");
 		FC_DECLARE_DERIVED_EXCEPTION(invalid_block_pos_hash, hsrcore::blockchain::blockchain_exception, 30034, "invalid block pow hash");
 		FC_DECLARE_DERIVED_EXCEPTION(illegal_production_info, hsrcore::blockchain::blockchain_exception, 30035, "illegal cache production info please wait a new block");
+		FC_DECLARE_DERIVED_EXCEPTION(illegal_block_type, hsrcore::blockchain::blockchain_exception, 30036, "forbidden pay pow reward to multisig account");
 
 
         FC_DECLARE_EXCEPTION(evaluation_error, 31000, "Evaluation Error");

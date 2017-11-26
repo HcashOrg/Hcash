@@ -5375,7 +5375,7 @@ namespace hsrcore {
             std::string acc_name = parameters[0].as<std::string>();
             if (parameters.size() <= 1)
                 FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 2 (infile)");
-            fc::path infile = parameters[1].as<fc::path>();
+            hsrcore::blockchain::FilePath infile = parameters[1].as<hsrcore::blockchain::FilePath>();
 
             bool result = get_client()->wallet_import_hshare_private_key(acc_name, infile);
             return fc::variant(result);
@@ -5394,7 +5394,7 @@ namespace hsrcore {
             std::string acc_name = parameters["acc_name"].as<std::string>();
             if (!parameters.contains("infile"))
                 FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'infile'");
-            fc::path infile = parameters["infile"].as<fc::path>();
+            hsrcore::blockchain::FilePath infile = parameters["infile"].as<hsrcore::blockchain::FilePath>();
 
             bool result = get_client()->wallet_import_hshare_private_key(acc_name, infile);
             return fc::variant(result);
@@ -5416,7 +5416,7 @@ namespace hsrcore {
             std::string acc_name = parameters[1].as<std::string>();
             if (parameters.size() <= 2)
                 FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 3 (infile)");
-            fc::path infile = parameters[2].as<fc::path>();
+            hsrcore::blockchain::FilePath infile = parameters[2].as<hsrcore::blockchain::FilePath>();
 
             bool result = get_client()->wallet_import_hshare_encrypted_private_key(passwd, acc_name, infile);
             return fc::variant(result);
@@ -5438,9 +5438,253 @@ namespace hsrcore {
             std::string acc_name = parameters["acc_name"].as<std::string>();
             if (!parameters.contains("infile"))
                 FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'infile'");
-            fc::path infile = parameters["infile"].as<fc::path>();
+            hsrcore::blockchain::FilePath infile = parameters["infile"].as<hsrcore::blockchain::FilePath>();
 
             bool result = get_client()->wallet_import_hshare_encrypted_private_key(passwd, acc_name, infile);
+            return fc::variant(result);
+        }
+
+        fc::variant CommonApiRpcServer::wallet_builder_add_signature_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters)
+        {
+            // check all of this method's prerequisites
+            verify_json_connection_is_authenticated(json_connection);
+            verify_wallet_is_open();
+            verify_wallet_is_unlocked();
+            // done checking prerequisites
+
+            if (parameters.size() <= 0)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 1 (builder)");
+            hsrcore::wallet::TransactionBuilder builder = parameters[0].as<hsrcore::wallet::TransactionBuilder>();
+            bool broadcast = (parameters.size() <= 1) ?
+            (fc::json::from_string("false").as<bool>()) :
+            parameters[1].as<bool>();
+
+            hsrcore::wallet::TransactionBuilder result = get_client()->wallet_builder_add_signature(builder, broadcast);
+            return fc::variant(result);
+        }
+
+        fc::variant CommonApiRpcServer::wallet_builder_add_signature_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters)
+        {
+            // check all of this method's prerequisites
+            verify_json_connection_is_authenticated(json_connection);
+            verify_wallet_is_open();
+            verify_wallet_is_unlocked();
+            // done checking prerequisites
+
+            if (!parameters.contains("builder"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'builder'");
+            hsrcore::wallet::TransactionBuilder builder = parameters["builder"].as<hsrcore::wallet::TransactionBuilder>();
+            bool broadcast = parameters.contains("broadcast") ?
+                (fc::json::from_string("false").as<bool>()) :
+                parameters["broadcast"].as<bool>();
+
+            hsrcore::wallet::TransactionBuilder result = get_client()->wallet_builder_add_signature(builder, broadcast);
+            return fc::variant(result);
+        }
+
+        fc::variant CommonApiRpcServer::wallet_builder_file_add_signature_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters)
+        {
+            // check all of this method's prerequisites
+            verify_json_connection_is_authenticated(json_connection);
+            verify_wallet_is_open();
+            verify_wallet_is_unlocked();
+            // done checking prerequisites
+
+            if (parameters.size() <= 0)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 1 (builder_path)");
+            hsrcore::blockchain::FilePath builder_path = parameters[0].as<hsrcore::blockchain::FilePath>();
+            bool broadcast = (parameters.size() <= 1) ?
+            (fc::json::from_string("false").as<bool>()) :
+            parameters[1].as<bool>();
+
+            hsrcore::wallet::TransactionBuilder result = get_client()->wallet_builder_file_add_signature(builder_path, broadcast);
+            return fc::variant(result);
+        }
+
+        fc::variant CommonApiRpcServer::wallet_builder_file_add_signature_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters)
+        {
+            // check all of this method's prerequisites
+            verify_json_connection_is_authenticated(json_connection);
+            verify_wallet_is_open();
+            verify_wallet_is_unlocked();
+            // done checking prerequisites
+
+            if (!parameters.contains("builder_path"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'builder_path'");
+            hsrcore::blockchain::FilePath builder_path = parameters["builder_path"].as<hsrcore::blockchain::FilePath>();
+            bool broadcast = parameters.contains("broadcast") ?
+                (fc::json::from_string("false").as<bool>()) :
+                parameters["broadcast"].as<bool>();
+
+            hsrcore::wallet::TransactionBuilder result = get_client()->wallet_builder_file_add_signature(builder_path, broadcast);
+            return fc::variant(result);
+        }
+
+        fc::variant CommonApiRpcServer::wallet_multisig_deposit_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters)
+        {
+            // check all of this method's prerequisites
+            verify_json_connection_is_authenticated(json_connection);
+            verify_wallet_is_open();
+            verify_wallet_is_unlocked();
+            // done checking prerequisites
+
+            if (parameters.size() <= 0)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 1 (amount)");
+            std::string amount = parameters[0].as<std::string>();
+            if (parameters.size() <= 1)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 2 (asset_symbol)");
+            std::string asset_symbol = parameters[1].as<std::string>();
+            if (parameters.size() <= 2)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 3 (from_account)");
+            std::string from_account = parameters[2].as<std::string>();
+            if (parameters.size() <= 3)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 4 (m)");
+            uint32_t m = parameters[3].as<uint32_t>();
+            if (parameters.size() <= 4)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 5 (addresses)");
+            std::vector<hsrcore::blockchain::Address> addresses = parameters[4].as<std::vector<hsrcore::blockchain::Address>>();
+            hsrcore::blockchain::Imessage memo_message = (parameters.size() <= 5) ?
+            (fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>()) :
+            parameters[5].as<hsrcore::blockchain::Imessage>();
+
+            hsrcore::wallet::WalletTransactionEntry result = get_client()->wallet_multisig_deposit(amount, asset_symbol, from_account, m, addresses, memo_message);
+            return fc::variant(result);
+        }
+
+        fc::variant CommonApiRpcServer::wallet_multisig_deposit_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters)
+        {
+            // check all of this method's prerequisites
+            verify_json_connection_is_authenticated(json_connection);
+            verify_wallet_is_open();
+            verify_wallet_is_unlocked();
+            // done checking prerequisites
+
+            if (!parameters.contains("amount"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'amount'");
+            std::string amount = parameters["amount"].as<std::string>();
+            if (!parameters.contains("asset_symbol"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'asset_symbol'");
+            std::string asset_symbol = parameters["asset_symbol"].as<std::string>();
+            if (!parameters.contains("from_account"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'from_account'");
+            std::string from_account = parameters["from_account"].as<std::string>();
+            if (!parameters.contains("m"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'm'");
+            uint32_t m = parameters["m"].as<uint32_t>();
+            if (!parameters.contains("addresses"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'addresses'");
+            std::vector<hsrcore::blockchain::Address> addresses = parameters["addresses"].as<std::vector<hsrcore::blockchain::Address>>();
+            hsrcore::blockchain::Imessage memo_message = parameters.contains("memo_message") ?
+                (fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>()) :
+                parameters["memo_message"].as<hsrcore::blockchain::Imessage>();
+
+            hsrcore::wallet::WalletTransactionEntry result = get_client()->wallet_multisig_deposit(amount, asset_symbol, from_account, m, addresses, memo_message);
+            return fc::variant(result);
+        }
+
+        fc::variant CommonApiRpcServer::wallet_multisig_get_address_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters)
+        {
+            // check all of this method's prerequisites
+            verify_json_connection_is_authenticated(json_connection);
+            verify_wallet_is_open();
+            verify_wallet_is_unlocked();
+            // done checking prerequisites
+
+            if (parameters.size() <= 0)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 1 (asset_symbol)");
+            std::string asset_symbol = parameters[0].as<std::string>();
+            if (parameters.size() <= 1)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 2 (m)");
+            uint32_t m = parameters[1].as<uint32_t>();
+            if (parameters.size() <= 2)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 3 (addresses)");
+            std::vector<hsrcore::blockchain::Address> addresses = parameters[2].as<std::vector<hsrcore::blockchain::Address>>();
+
+            hsrcore::blockchain::Address result = get_client()->wallet_multisig_get_address(asset_symbol, m, addresses);
+            return fc::variant(result);
+        }
+
+        fc::variant CommonApiRpcServer::wallet_multisig_get_address_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters)
+        {
+            // check all of this method's prerequisites
+            verify_json_connection_is_authenticated(json_connection);
+            verify_wallet_is_open();
+            verify_wallet_is_unlocked();
+            // done checking prerequisites
+
+            if (!parameters.contains("asset_symbol"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'asset_symbol'");
+            std::string asset_symbol = parameters["asset_symbol"].as<std::string>();
+            if (!parameters.contains("m"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'm'");
+            uint32_t m = parameters["m"].as<uint32_t>();
+            if (!parameters.contains("addresses"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'addresses'");
+            std::vector<hsrcore::blockchain::Address> addresses = parameters["addresses"].as<std::vector<hsrcore::blockchain::Address>>();
+
+            hsrcore::blockchain::Address result = get_client()->wallet_multisig_get_address(asset_symbol, m, addresses);
+            return fc::variant(result);
+        }
+
+        fc::variant CommonApiRpcServer::wallet_multisig_withdraw_start_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters)
+        {
+            // check all of this method's prerequisites
+            verify_json_connection_is_authenticated(json_connection);
+            verify_wallet_is_open();
+            verify_wallet_is_unlocked();
+            // done checking prerequisites
+
+            if (parameters.size() <= 0)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 1 (amount)");
+            std::string amount = parameters[0].as<std::string>();
+            if (parameters.size() <= 1)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 2 (asset_symbol)");
+            std::string asset_symbol = parameters[1].as<std::string>();
+            if (parameters.size() <= 2)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 3 (from)");
+            hsrcore::blockchain::Address from = parameters[2].as<hsrcore::blockchain::Address>();
+            if (parameters.size() <= 3)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 4 (to_address)");
+            hsrcore::blockchain::Address to_address = parameters[3].as<hsrcore::blockchain::Address>();
+            hsrcore::blockchain::Imessage memo_message = (parameters.size() <= 4) ?
+            (fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>()) :
+            parameters[4].as<hsrcore::blockchain::Imessage>();
+            hsrcore::blockchain::FilePath builder_path = (parameters.size() <= 5) ?
+            (fc::json::from_string("\"\"").as<hsrcore::blockchain::FilePath>()) :
+            parameters[5].as<hsrcore::blockchain::FilePath>();
+
+            hsrcore::wallet::TransactionBuilder result = get_client()->wallet_multisig_withdraw_start(amount, asset_symbol, from, to_address, memo_message, builder_path);
+            return fc::variant(result);
+        }
+
+        fc::variant CommonApiRpcServer::wallet_multisig_withdraw_start_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters)
+        {
+            // check all of this method's prerequisites
+            verify_json_connection_is_authenticated(json_connection);
+            verify_wallet_is_open();
+            verify_wallet_is_unlocked();
+            // done checking prerequisites
+
+            if (!parameters.contains("amount"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'amount'");
+            std::string amount = parameters["amount"].as<std::string>();
+            if (!parameters.contains("asset_symbol"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'asset_symbol'");
+            std::string asset_symbol = parameters["asset_symbol"].as<std::string>();
+            if (!parameters.contains("from"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'from'");
+            hsrcore::blockchain::Address from = parameters["from"].as<hsrcore::blockchain::Address>();
+            if (!parameters.contains("to_address"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'to_address'");
+            hsrcore::blockchain::Address to_address = parameters["to_address"].as<hsrcore::blockchain::Address>();
+            hsrcore::blockchain::Imessage memo_message = parameters.contains("memo_message") ?
+                (fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>()) :
+                parameters["memo_message"].as<hsrcore::blockchain::Imessage>();
+            hsrcore::blockchain::FilePath builder_path = parameters.contains("builder_path") ?
+                (fc::json::from_string("\"\"").as<hsrcore::blockchain::FilePath>()) :
+                parameters["builder_path"].as<hsrcore::blockchain::FilePath>();
+
+            hsrcore::wallet::TransactionBuilder result = get_client()->wallet_multisig_withdraw_start(amount, asset_symbol, from, to_address, memo_message, builder_path);
             return fc::variant(result);
         }
 
@@ -7674,8 +7918,11 @@ namespace hsrcore {
             if (parameters.size() <= 1)
                 FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 2 (Nonce)");
             uint64_t Nonce = parameters[1].as<uint64_t>();
+            if (parameters.size() <= 2)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 3 (Extra_Nonce)");
+            uint64_t Extra_Nonce = parameters[2].as<uint64_t>();
 
-            bool result = get_client()->submit_block(HashNoNonce, Nonce);
+            bool result = get_client()->submit_block(HashNoNonce, Nonce, Extra_Nonce);
             return fc::variant(result);
         }
 
@@ -7693,8 +7940,43 @@ namespace hsrcore {
             if (!parameters.contains("Nonce"))
                 FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'Nonce'");
             uint64_t Nonce = parameters["Nonce"].as<uint64_t>();
+            if (!parameters.contains("Extra_Nonce"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'Extra_Nonce'");
+            uint64_t Extra_Nonce = parameters["Extra_Nonce"].as<uint64_t>();
 
-            bool result = get_client()->submit_block(HashNoNonce, Nonce);
+            bool result = get_client()->submit_block(HashNoNonce, Nonce, Extra_Nonce);
+            return fc::variant(result);
+        }
+
+        fc::variant CommonApiRpcServer::submit_blockex_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters)
+        {
+            // check all of this method's prerequisites
+            verify_json_connection_is_authenticated(json_connection);
+            verify_wallet_is_open();
+            verify_wallet_is_unlocked();
+            // done checking prerequisites
+
+            if (parameters.size() <= 0)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 1 (data)");
+            std::string data = parameters[0].as<std::string>();
+
+            bool result = get_client()->submit_blockex(data);
+            return fc::variant(result);
+        }
+
+        fc::variant CommonApiRpcServer::submit_blockex_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters)
+        {
+            // check all of this method's prerequisites
+            verify_json_connection_is_authenticated(json_connection);
+            verify_wallet_is_open();
+            verify_wallet_is_unlocked();
+            // done checking prerequisites
+
+            if (!parameters.contains("data"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'data'");
+            std::string data = parameters["data"].as<std::string>();
+
+            bool result = get_client()->submit_blockex(data);
             return fc::variant(result);
         }
 
@@ -9767,6 +10049,46 @@ namespace hsrcore {
                                         this, capture_con, _1);
             json_connection->add_named_param_method("wallet_import_hshare_encrypted_private_key", bound_named_method);
 
+           // register method wallet_builder_add_signature
+            bound_positional_method = boost::bind(&CommonApiRpcServer::wallet_builder_add_signature_positional,
+                this, capture_con, _1);
+            json_connection->add_method("wallet_builder_add_signature", bound_positional_method);
+            bound_named_method = boost::bind(&CommonApiRpcServer::wallet_builder_add_signature_named, 
+                this, capture_con, _1);
+            json_connection->add_named_param_method("wallet_builder_add_signature", bound_named_method);
+
+           // register method wallet_builder_file_add_signature
+            bound_positional_method = boost::bind(&CommonApiRpcServer::wallet_builder_file_add_signature_positional,
+                this, capture_con, _1);
+            json_connection->add_method("wallet_builder_file_add_signature", bound_positional_method);
+            bound_named_method = boost::bind(&CommonApiRpcServer::wallet_builder_file_add_signature_named, 
+                this, capture_con, _1);
+            json_connection->add_named_param_method("wallet_builder_file_add_signature", bound_named_method);
+
+           // register method wallet_multisig_deposit
+            bound_positional_method = boost::bind(&CommonApiRpcServer::wallet_multisig_deposit_positional,
+                this, capture_con, _1);
+            json_connection->add_method("wallet_multisig_deposit", bound_positional_method);
+            bound_named_method = boost::bind(&CommonApiRpcServer::wallet_multisig_deposit_named, 
+                this, capture_con, _1);
+            json_connection->add_named_param_method("wallet_multisig_deposit", bound_named_method);
+
+           // register method wallet_multisig_get_address
+            bound_positional_method = boost::bind(&CommonApiRpcServer::wallet_multisig_get_address_positional,
+                this, capture_con, _1);
+            json_connection->add_method("wallet_multisig_get_address", bound_positional_method);
+            bound_named_method = boost::bind(&CommonApiRpcServer::wallet_multisig_get_address_named, 
+                this, capture_con, _1);
+            json_connection->add_named_param_method("wallet_multisig_get_address", bound_named_method);
+
+           // register method wallet_multisig_withdraw_start
+            bound_positional_method = boost::bind(&CommonApiRpcServer::wallet_multisig_withdraw_start_positional,
+                this, capture_con, _1);
+            json_connection->add_method("wallet_multisig_withdraw_start", bound_positional_method);
+            bound_named_method = boost::bind(&CommonApiRpcServer::wallet_multisig_withdraw_start_named, 
+                this, capture_con, _1);
+            json_connection->add_named_param_method("wallet_multisig_withdraw_start", bound_named_method);
+
             // register method about
             bound_positional_method = boost::bind(&CommonApiRpcServer::about_positional, 
                                         this, capture_con, _1);
@@ -10286,6 +10608,14 @@ namespace hsrcore {
             bound_named_method = boost::bind(&CommonApiRpcServer::submit_block_named, 
                 this, capture_con, _1);
             json_connection->add_named_param_method("submit_block", bound_named_method);
+
+           // register method submit_blockex
+            bound_positional_method = boost::bind(&CommonApiRpcServer::submit_blockex_positional,
+                this, capture_con, _1);
+            json_connection->add_method("submit_blockex", bound_positional_method);
+            bound_named_method = boost::bind(&CommonApiRpcServer::submit_blockex_named, 
+                this, capture_con, _1);
+            json_connection->add_named_param_method("submit_blockex", bound_named_method);
 
            // register method set_coinbase
             bound_positional_method = boost::bind(&CommonApiRpcServer::set_coinbase_positional,
@@ -12815,10 +13145,10 @@ namespace hsrcore {
                     /* returns */ "bool",
                     /* params: */{
                         {"acc_name", "string", hsrcore::api::required_positional, fc::ovariant()},
-                        {"infile", "filename", hsrcore::api::required_positional, fc::ovariant()}
+                        {"infile", "path", hsrcore::api::required_positional, fc::ovariant()}
                           },
                     /* prerequisites */ (hsrcore::api::MethodPrerequisites) 4,
-                    /* detailed description */ "Loads the private key into the specified account. Returns which account it was actually imported to.\n\nParameters:\n  infile (filename, required): hshare wallet file to import private key\n\nReturns:\n  bool\n",
+                    /* detailed description */ "Loads the private key into the specified account. Returns which account it was actually imported to.\n\nParameters:\n  acc_name (string, required): the account name of the private key\n  infile (path, required):  hshare wallet file to import private key\n\nReturns:\n  bool\n",
                     /* aliases */ {}, false};
                 store_method_metadata(wallet_import_hshare_private_key_method_metadata);
             }
@@ -12831,12 +13161,96 @@ namespace hsrcore {
                 /* params: */ {
                     {"passwd", "passphrase", hsrcore::api::required_positional, fc::ovariant()},
                     {"acc_name", "string", hsrcore::api::required_positional, fc::ovariant()},
-                    {"infile", "filename", hsrcore::api::required_positional, fc::ovariant()}
+                        {"infile", "path", hsrcore::api::required_positional, fc::ovariant()}
                 },
                 /* prerequisites */ (hsrcore::api::MethodPrerequisites) 4,
-                /* detailed description */ "Loads the encrypted private key into the specified account. Returns which account it was actually imported to.\n\nParameters:\n  passwd (passphrase, required): the password to decrypt the key in wallet file\n  acc_name (string, required): the account name of the private key\n  infile (filename, required): hshare wallet file to import private key\n\nReturns:\n  bool\n",
+                    /* detailed description */ "Loads the encrypted private key into the specified account. Returns which account it was actually imported to.\n\nParameters:\n  passwd (passphrase, required): the password to decrypt the key in wallet file\n  acc_name (string, required): the account name of the private key\n  infile (path, required):  hshare wallet file to import private key\n\nReturns:\n  bool\n",
                 /* aliases */ {}, false};
                 store_method_metadata(wallet_import_hshare_encrypted_private_key_method_metadata);
+            }
+
+            {
+                // register method wallet_builder_add_signature
+                hsrcore::api::MethodData wallet_builder_add_signature_method_metadata{ "wallet_builder_add_signature", nullptr,
+                    /* description */ "Review a transaction and add a signature.",
+                    /* returns */ "transaction_builder",
+                    /* params: */{
+                        {"builder", "transaction_builder", hsrcore::api::required_positional, fc::ovariant()},
+                        {"broadcast", "bool", hsrcore::api::optional_positional, fc::variant(fc::json::from_string("false"))}
+                          },
+                    /* prerequisites */ (hsrcore::api::MethodPrerequisites) 4,
+                    /* detailed description */ "Review a transaction and add a signature.\n\nParameters:\n  builder (transaction_builder, required): A transaction builder object created by a wallet. If null, tries to use builder in file.\n  broadcast (bool, optional, defaults to false): Try to broadcast this transaction? (bool, optional, defaults to false)\n\nReturns:\n  transaction_builder\n",
+                    /* aliases */ {}, false};
+                store_method_metadata(wallet_builder_add_signature_method_metadata);
+            }
+
+            {
+                // register method wallet_builder_file_add_signature
+                hsrcore::api::MethodData wallet_builder_file_add_signature_method_metadata{ "wallet_builder_file_add_signature", nullptr,
+                    /* description */ "Review a transaction in a builder file and add a signature.",
+                    /* returns */ "transaction_builder",
+                    /* params: */{
+                        {"builder_path", "path", hsrcore::api::required_positional, fc::ovariant()},
+                        {"broadcast", "bool", hsrcore::api::optional_positional, fc::variant(fc::json::from_string("false"))}
+                          },
+                    /* prerequisites */ (hsrcore::api::MethodPrerequisites) 4,
+                    /* detailed description */ "Review a transaction in a builder file and add a signature.\n\nParameters:\n  builder_path (path, required): builder_path If specified, will write builder here instead of to DATA_DIR/transactions/latest.trx\n  broadcast (bool, optional, defaults to false): Try to broadcast this transaction? (bool, optional, defaults to false)\n\nReturns:\n  transaction_builder\n",
+                    /* aliases */ {}, false};
+                store_method_metadata(wallet_builder_file_add_signature_method_metadata);
+            }
+
+            {
+                // register method wallet_multisig_deposit
+                hsrcore::api::MethodData wallet_multisig_deposit_method_metadata{ "wallet_multisig_deposit", nullptr,
+                    /* description */ "transfer to multisig account",
+                    /* returns */ "transaction_entry",
+                    /* params: */{
+                        {"amount", "string", hsrcore::api::required_positional, fc::ovariant()},
+                        {"asset_symbol", "asset_symbol", hsrcore::api::required_positional, fc::ovariant()},
+                        {"from_account", "string", hsrcore::api::required_positional, fc::ovariant()},
+                        {"m", "uint32_t", hsrcore::api::required_positional, fc::ovariant()},
+                        {"addresses", "address_list", hsrcore::api::required_positional, fc::ovariant()},
+                        {"memo_message", "information", hsrcore::api::optional_positional, fc::variant(fc::json::from_string("\"\""))}
+                          },
+                    /* prerequisites */ (hsrcore::api::MethodPrerequisites) 4,
+                    /* detailed description */ "transfer to multisig account\n\nParameters:\n  amount (string, required):  how much to transfer (string, required)\n  asset_symbol (asset_symbol, required): which asset (string, required)\n  from_account (string, required):  TITAN name to withdraw from (string, required)\n  m (uint32_t, required): Required number of signatures (uint32_t, required)\n  addresses (address_list, required): List of possible addresses for signatures (address_list, required)\n  memo_message (information, optional, defaults to \"\"): a memo to store with the transaction\n\nReturns:\n  transaction_entry\n",
+                    /* aliases */ {}, false};
+                store_method_metadata(wallet_multisig_deposit_method_metadata);
+            }
+
+            {
+                // register method wallet_multisig_get_address
+                hsrcore::api::MethodData wallet_multisig_get_address_method_metadata{ "wallet_multisig_get_address", nullptr,
+                    /* description */ "get multisig account address",
+                    /* returns */ "address",
+                    /* params: */{
+                        {"asset_symbol", "asset_symbol", hsrcore::api::required_positional, fc::ovariant()},
+                        {"m", "uint32_t", hsrcore::api::required_positional, fc::ovariant()},
+                        {"addresses", "address_list", hsrcore::api::required_positional, fc::ovariant()}
+                          },
+                    /* prerequisites */ (hsrcore::api::MethodPrerequisites) 4,
+                    /* detailed description */ "get multisig account address\n\nParameters:\n  asset_symbol (asset_symbol, required): which asset (string, required)\n  m (uint32_t, required): Required number of signatures (uint32_t, required)\n  addresses (address_list, required): List of possible addresses for signatures (address_list, required)\n\nReturns:\n  address\n",
+                    /* aliases */ {}, false};
+                store_method_metadata(wallet_multisig_get_address_method_metadata);
+            }
+
+            {
+                // register method wallet_multisig_withdraw_start
+                hsrcore::api::MethodData wallet_multisig_withdraw_start_method_metadata{ "wallet_multisig_withdraw_start", nullptr,
+                    /* description */ "transfer to normal account from multisig account",
+                    /* returns */ "transaction_builder",
+                    /* params: */{
+                        {"amount", "string", hsrcore::api::required_positional, fc::ovariant()},
+                        {"asset_symbol", "asset_symbol", hsrcore::api::required_positional, fc::ovariant()},
+                        {"from", "address", hsrcore::api::required_positional, fc::ovariant()},
+                        {"to_address", "address", hsrcore::api::required_positional, fc::ovariant()},
+                        {"memo_message", "information", hsrcore::api::optional_positional, fc::variant(fc::json::from_string("\"\""))},
+                        {"builder_path", "path", hsrcore::api::optional_positional, fc::variant(fc::json::from_string("\"\""))}
+                          },
+                    /* prerequisites */ (hsrcore::api::MethodPrerequisites) 4,
+                    /* detailed description */ "transfer to normal account from multisig account\n\nParameters:\n  amount (string, required):  how much to transfer (string, required)\n  asset_symbol (asset_symbol, required): which asset (string, required)\n  from (address, required): multisig balance ID to withdraw from (address, required)\n  to_address (address, required): address to receive funds (address, required)\n  memo_message (information, optional, defaults to \"\"): a memo to store with the transaction\n  builder_path (path, optional, defaults to \"\"): If specified, will write builder here instead of to DATA_DIR/transactions/latest.trx\n\nReturns:\n  transaction_builder\n",
+                    /* aliases */ {}, false};
+                store_method_metadata(wallet_multisig_withdraw_start_method_metadata);
             }
 
             {
@@ -13757,12 +14171,27 @@ namespace hsrcore {
                     /* returns */ "bool",
                     /* params: */{
                         {"HashNoNonce", "std::string", hsrcore::api::required_positional, fc::ovariant()},
-                        {"Nonce", "uint64_t", hsrcore::api::required_positional, fc::ovariant()}
+                        {"Nonce", "uint64_t", hsrcore::api::required_positional, fc::ovariant()},
+                        {"Extra_Nonce", "uint64_t", hsrcore::api::required_positional, fc::ovariant()}
                           },
                     /* prerequisites */ (hsrcore::api::MethodPrerequisites) 4,
-                    /* detailed description */ "submit block!\n\nParameters:\n  HashNoNonce (std::string, required): blockchain no nonce hash\n  Nonce (uint64_t, required): blockchain nonce\n\nReturns:\n  bool\n",
+                    /* detailed description */ "submit block!\n\nParameters:\n  HashNoNonce (std::string, required): blockchain no nonce hash\n  Nonce (uint64_t, required): blockchain nonce\n  Extra_Nonce (uint64_t, required): blockchain extra nonce\n\nReturns:\n  bool\n",
                     /* aliases */ {}, true};
                 store_method_metadata(submit_block_method_metadata);
+            }
+
+            {
+                // register method submit_blockex
+                hsrcore::api::MethodData submit_blockex_method_metadata{ "submit_blockex", nullptr,
+                    /* description */ "submit block!",
+                    /* returns */ "bool",
+                    /* params: */{
+                        {"data", "std::string", hsrcore::api::required_positional, fc::ovariant()}
+                          },
+                    /* prerequisites */ (hsrcore::api::MethodPrerequisites) 4,
+                    /* detailed description */ "submit block!\n\nParameters:\n  data (std::string, required): blockchain no nonce hash\n\nReturns:\n  bool\n",
+                    /* aliases */ {}, true};
+                store_method_metadata(submit_blockex_method_metadata);
             }
 
             {
@@ -14320,6 +14749,16 @@ namespace hsrcore {
                 return wallet_import_hshare_private_key_positional(nullptr, parameters);
             if (method_name == "wallet_import_hshare_encrypted_private_key")
                 return wallet_import_hshare_encrypted_private_key_positional(nullptr, parameters);
+            if (method_name == "wallet_builder_add_signature")
+                return wallet_builder_add_signature_positional(nullptr, parameters);
+            if (method_name == "wallet_builder_file_add_signature")
+                return wallet_builder_file_add_signature_positional(nullptr, parameters);
+            if (method_name == "wallet_multisig_deposit")
+                return wallet_multisig_deposit_positional(nullptr, parameters);
+            if (method_name == "wallet_multisig_get_address")
+                return wallet_multisig_get_address_positional(nullptr, parameters);
+            if (method_name == "wallet_multisig_withdraw_start")
+                return wallet_multisig_withdraw_start_positional(nullptr, parameters);
             if (method_name == "about")
                 return about_positional(nullptr, parameters);
             if (method_name == "get_info")
@@ -14444,6 +14883,8 @@ namespace hsrcore {
                 return get_work_positional(nullptr, parameters);
             if (method_name == "submit_block")
                 return submit_block_positional(nullptr, parameters);
+            if (method_name == "submit_blockex")
+                return submit_blockex_positional(nullptr, parameters);
             if (method_name == "set_coinbase")
                 return set_coinbase_positional(nullptr, parameters);
             if (method_name == "get_staking_info")

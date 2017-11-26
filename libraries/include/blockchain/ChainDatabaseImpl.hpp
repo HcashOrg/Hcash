@@ -242,6 +242,7 @@ namespace hsrcore {
 				* @return void
 				*/
 				void                                        pay_miner(const BlockIdType& block_id,
+					const SignedBlockHeader& block_header,
 					const PublicKeyType& block_signee,
 					const PendingChainStatePtr& pending_state,
 					oBlockEntry& block_entry, bool is_coin_stake)const;

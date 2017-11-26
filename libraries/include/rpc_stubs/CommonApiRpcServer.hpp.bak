@@ -359,6 +359,10 @@ namespace hsrcore {
             fc::variant wallet_get_account_owner_publickey_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
             fc::variant wallet_transfer_to_contract_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
             fc::variant wallet_transfer_to_contract_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
+            fc::variant sign_build_transaction_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
+            fc::variant sign_build_transaction_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
+            fc::variant broadcast_building_transaction_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
+            fc::variant broadcast_building_transaction_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
             fc::variant wallet_transfer_to_contract_build_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
             fc::variant wallet_transfer_to_contract_build_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
             fc::variant wallet_transfer_to_contract_testing_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
@@ -371,6 +375,16 @@ namespace hsrcore {
             fc::variant wallet_import_hshare_private_key_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
             fc::variant wallet_import_hshare_encrypted_private_key_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
             fc::variant wallet_import_hshare_encrypted_private_key_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
+            fc::variant wallet_builder_add_signature_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
+            fc::variant wallet_builder_add_signature_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
+            fc::variant wallet_builder_file_add_signature_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
+            fc::variant wallet_builder_file_add_signature_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
+            fc::variant wallet_multisig_deposit_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
+            fc::variant wallet_multisig_deposit_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
+            fc::variant wallet_multisig_get_address_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
+            fc::variant wallet_multisig_get_address_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
+            fc::variant wallet_multisig_withdraw_start_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
+            fc::variant wallet_multisig_withdraw_start_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
             fc::variant about_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
             fc::variant about_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
             fc::variant get_info_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);

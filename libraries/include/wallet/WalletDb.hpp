@@ -60,6 +60,10 @@ namespace hsrcore {
             WalletContactEntry  store_contact(const ContactData& contact);
             oWalletContactEntry remove_contact(const variant& data);
             oWalletContactEntry remove_contact(const string& label);
+			oWalletMultisigBalanceId lookup_multisig_balance(const Address& multisig_balance_address)const;
+			set<WalletMultisigBalanceId> lookup_all_multisig_balance();
+			WalletMultisigBalanceId store_multisig_balance(const BalanceIdType& multisig_balance_id);
+			oWalletMultisigBalanceId remove_multisig_balance(const Address& multisig_balance_address);
 
             // Transaction getters and setters
             oWalletTransactionEntry lookup_transaction(const TransactionIdType& id)const;
@@ -150,6 +154,7 @@ namespace hsrcore {
 			// wallet contract entry db related
 			unordered_map<Address, vector<WalletContractEntry>>                  contracts_of_wallet;
 			unordered_map<ContractIdType, WalletContractEntry>                   id_to_entry_for_contract;
+			set<WalletMultisigBalanceId>									id_to_multisig_balance_index;
 
             void remove_item(int32_t index);
 

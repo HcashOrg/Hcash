@@ -64,6 +64,8 @@ namespace hsrcore {
             ///Map of account address to key owning that account's market transactions
             std::map<blockchain::Address, PublicKeyType>                               order_keys;
 
+			std::string																   memo_message;
+
 
 
 
@@ -304,4 +306,4 @@ FC_REFLECT_ENUM(hsrcore::wallet::VoteStrategy,
     (vote_random)
     (vote_recommended)
     )
-    FC_REFLECT(hsrcore::wallet::TransactionBuilder, (transaction_entry)(required_signatures)(outstanding_balances))
+    FC_REFLECT(hsrcore::wallet::TransactionBuilder, (transaction_entry)(required_signatures)(outstanding_balances)(memo_message))

@@ -94,11 +94,11 @@ namespace hsrcore {
 
                 lua_set_compile_error(L, msg);
 
-                //如果上次的exception code为THINKYOUNG_API_LVM_LIMIT_OVER_ERROR, 不能被其他异常覆盖
+                //如果上次的exception code为HSRCORE_API_LVM_LIMIT_OVER_ERROR, 不能被其他异常覆盖
                 //只有调用clear清理后，才能继续记录异常
                 int last_code = lua::lib::get_lua_state_value(L, "exception_code").int_value;
-                if (last_code == THINKYOUNG_API_LVM_LIMIT_OVER_ERROR
-                    && code != THINKYOUNG_API_LVM_LIMIT_OVER_ERROR)
+                if (last_code == HSRCORE_API_LVM_LIMIT_OVER_ERROR
+                    && code != HSRCORE_API_LVM_LIMIT_OVER_ERROR)
                 {
                     return;
                 }

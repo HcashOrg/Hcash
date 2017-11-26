@@ -99,7 +99,8 @@ void WalletImpl::scan_block(uint32_t block_num)
 				
 
 				auto block_entry = _blockchain->get_block_entry(block_num);
-				const auto public_key = block_header.coin_base;
+				const auto public_key = key_entry->public_key;
+
 				auto entry_id = fc::ripemd160::hash(self->get_key_label(public_key)+ boost::lexical_cast<std::string>(block_header.block_num));
 				auto transaction_entry = _wallet_db.lookup_transaction(entry_id);
 				if (!transaction_entry.valid())
@@ -114,7 +115,19 @@ void WalletImpl::scan_block(uint32_t block_num)
 				auto entry = LedgerEntry();
 				entry.to_account = public_key;
 				entry.amount = Asset(block_entry->signee_fees_collected + _blockchain->get_max_delegate_pay_issued_per_block(block_num));
-				entry.memo = "pay miner from " + boost::lexical_cast<std::string>(block_header.block_num);
+				if (block_header.is_coinstake)
+				{
+					if (block_header.is_multisig_account)
+					{
+						entry.memo = "pay pos reward from " + boost::lexical_cast<std::string>(block_header.block_num) + "to multisig account"+(string)block_header.coin_base;
+					}
+					else
+					{
+						entry.memo = "pay pos reward from " + boost::lexical_cast<std::string>(block_header.block_num);
+					}
+					
+				}
+				entry.memo = "pay pow reward from " + boost::lexical_cast<std::string>(block_header.block_num);
 
 				transaction_entry->block_num = block_header.block_num;
 				transaction_entry->entry_id = entry_id;
@@ -134,6 +147,13 @@ void WalletImpl::scan_block(uint32_t block_num)
 			{
 				BalanceEntry temp_entry = BalanceEntry(block_signee, Asset(0, 0), SlateIdType(0));
 				auto balance_entry = _blockchain->get_balance_entry(temp_entry.id());
+				if (balance_entry.valid())
+					scan_balance(*balance_entry);
+				break;
+			}
+			else if (block_header.is_multisig_account)
+			{
+				auto balance_entry = _blockchain->get_balance_entry(block_signee);
 				if (balance_entry.valid())
 					scan_balance(*balance_entry);
 				break;
@@ -1865,6 +1885,7 @@ PrettyTransaction Wallet::to_pretty_trx(const WalletTransactionEntry& trx_rec) c
     pretty_trx.is_market_cancel = !trx_rec.is_virtual && trx_rec.is_market && trx_rec.trx.is_cancel();
     pretty_trx.trx_id = !trx_rec.is_virtual ? trx_rec.trx.id() : trx_rec.entry_id;
     pretty_trx.block_num = trx_rec.block_num;
+	pretty_trx.Confirms = my->_blockchain->get_head_block_num() - trx_rec.block_num;
 
     for (const auto& entry : trx_rec.ledger_entries)
     {
@@ -2073,6 +2094,7 @@ PrettyTransaction		Wallet::to_pretty_trx(const hsrcore::blockchain::TransactionE
     pretty_trx.is_market_cancel = false;
     pretty_trx.trx_id = trx_entry.trx.id();
     pretty_trx.block_num = block_num;
+	pretty_trx.Confirms = my->_blockchain->get_head_block_num() - block_num;
     pretty_trx.block_position = block_position;
 
     // default set normal transaction type 
@@ -2365,6 +2387,7 @@ PrettyContractTransaction		Wallet::to_pretty_contract_trx(const hsrcore::blockch
     auto block_healder = my->_blockchain->get_block_header(block_num);
 
     pretty_trx.block_num = block_num;
+	pretty_trx.Confirms = my->_blockchain->get_head_block_num() - block_num;
     pretty_trx.block_position = block_position;
     pretty_trx.result_trx_id = result_trx_id;
     pretty_trx.orig_trx_id = orig_trx_id;

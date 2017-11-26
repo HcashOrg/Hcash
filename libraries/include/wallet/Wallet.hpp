@@ -174,7 +174,7 @@ namespace hsrcore {
             * @return void
             */
             void    write_latest_builder(const TransactionBuilder& builder,
-                const string& alternate_path);
+                const std::string& alternate_path);
 
             /**
             * Set wallet version
@@ -643,6 +643,36 @@ namespace hsrcore {
             */
             oWalletContactEntry remove_contact(const string& label);
 
+
+
+			/**
+			* Get multisig according to data entered. Data include account_name or public_key or address or btc_address.
+			*
+			* @param  multisig_address  multisig address.
+			*
+			* @return oWalletMultisigBalanceEntry
+			*/
+			oWalletMultisigBalanceId get_multisig(const Address& multisig_address)const;
+			set<WalletMultisigBalanceId> get_all_multisig();
+			/**
+			* Add multisig in wallet db
+			*
+			* @param  multisig  MultisigBalanceData
+			*
+			* @return WalletMultisigBalanceEntry
+			*/
+			WalletMultisigBalanceId add_multisig(const BalanceIdType& multisig);
+			/**
+			* Remove multisig in wallet db
+			*
+			* @param  multisig_address   multisig address.
+			*
+			* @return oWalletMultisigBalanceEntry
+			*/
+			oWalletMultisigBalanceId remove_multisig(const Address& multisig_address);
+
+
+
             /**
             * Get wallet data from the address entered.
             *
@@ -900,7 +930,7 @@ namespace hsrcore {
             *
             * @return std::shared_ptr<TransactionBuilder>
             */
-            std::shared_ptr<TransactionBuilder> create_transaction_builder_from_file(const string& old_builder_path = "");
+            std::shared_ptr<TransactionBuilder> create_transaction_builder_from_file(const fc::path& old_builder_path = "");
 
 
             /**

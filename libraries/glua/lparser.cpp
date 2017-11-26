@@ -1235,7 +1235,7 @@ static void gotostat(LexState *ls, int pc) {
 	*/
     //const char *msg = luaO_pushfstring(ls->L, "hsrcore lua not support `goto` symbol");
     //ls->L->force_stopping = true;
-    //hsrcore::lua::api::throw_exception(ls->L, THINKYOUNG_API_PARSER_ERROR, msg);
+    //hsrcore::lua::api::throw_exception(ls->L, HSRCORE_API_PARSER_ERROR, msg);
     //semerror(ls, msg);
     //if (ls->L->force_stopping)
     //    return;

@@ -815,15 +815,40 @@ namespace hsrcore {
         {
             fc::variant result = get_json_connection()->async_call("wallet_scan_contracts", std::vector<fc::variant>{}).wait();
         }
-        bool CommonApiRpcClient::wallet_import_hshare_private_key(const std::string& acc_name, const fc::path& infile)
+        bool CommonApiRpcClient::wallet_import_hshare_private_key(const std::string& acc_name, const hsrcore::blockchain::FilePath& infile)
         {
             fc::variant result = get_json_connection()->async_call("wallet_import_hshare_private_key", std::vector<fc::variant>{fc::variant(acc_name), fc::variant(infile)}).wait();
             return result.as<bool>();
         }
-        bool CommonApiRpcClient::wallet_import_hshare_encrypted_private_key(const std::string& passwd, const std::string& acc_name, const fc::path& infile)
+        bool CommonApiRpcClient::wallet_import_hshare_encrypted_private_key(const std::string& passwd, const std::string& acc_name, const hsrcore::blockchain::FilePath& infile)
         {
             fc::variant result = get_json_connection()->async_call("wallet_import_hshare_encrypted_private_key", std::vector<fc::variant>{fc::variant(passwd), fc::variant(acc_name), fc::variant(infile)}).wait();
             return result.as<bool>();
+        }
+        hsrcore::wallet::TransactionBuilder CommonApiRpcClient::wallet_builder_add_signature(const hsrcore::wallet::TransactionBuilder& builder, bool broadcast /* = fc::json::from_string("false").as<bool>() */)
+        {
+            fc::variant result = get_json_connection()->async_call("wallet_builder_add_signature", std::vector<fc::variant>{fc::variant(builder), fc::variant(broadcast)}).wait();
+            return result.as<hsrcore::wallet::TransactionBuilder>();
+        }
+        hsrcore::wallet::TransactionBuilder CommonApiRpcClient::wallet_builder_file_add_signature(const hsrcore::blockchain::FilePath& builder_path, bool broadcast /* = fc::json::from_string("false").as<bool>() */)
+        {
+            fc::variant result = get_json_connection()->async_call("wallet_builder_file_add_signature", std::vector<fc::variant>{fc::variant(builder_path), fc::variant(broadcast)}).wait();
+            return result.as<hsrcore::wallet::TransactionBuilder>();
+        }
+        hsrcore::wallet::WalletTransactionEntry CommonApiRpcClient::wallet_multisig_deposit(const std::string& amount, const std::string& asset_symbol, const std::string& from_account, uint32_t m, const std::vector<hsrcore::blockchain::Address>& addresses, const hsrcore::blockchain::Imessage& memo_message /* = fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>() */)
+        {
+            fc::variant result = get_json_connection()->async_call("wallet_multisig_deposit", std::vector<fc::variant>{fc::variant(amount), fc::variant(asset_symbol), fc::variant(from_account), fc::variant(m), fc::variant(addresses), fc::variant(memo_message)}).wait();
+            return result.as<hsrcore::wallet::WalletTransactionEntry>();
+        }
+        hsrcore::blockchain::Address CommonApiRpcClient::wallet_multisig_get_address(const std::string& asset_symbol, uint32_t m, const std::vector<hsrcore::blockchain::Address>& addresses)
+        {
+            fc::variant result = get_json_connection()->async_call("wallet_multisig_get_address", std::vector<fc::variant>{fc::variant(asset_symbol), fc::variant(m), fc::variant(addresses)}).wait();
+            return result.as<hsrcore::blockchain::Address>();
+        }
+        hsrcore::wallet::TransactionBuilder CommonApiRpcClient::wallet_multisig_withdraw_start(const std::string& amount, const std::string& asset_symbol, const hsrcore::blockchain::Address& from, const hsrcore::blockchain::Address& to_address, const hsrcore::blockchain::Imessage& memo_message /* = fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>() */, const hsrcore::blockchain::FilePath& builder_path /* = fc::json::from_string("\"\"").as<hsrcore::blockchain::FilePath>() */)
+        {
+            fc::variant result = get_json_connection()->async_call("wallet_multisig_withdraw_start", std::vector<fc::variant>{fc::variant(amount), fc::variant(asset_symbol), fc::variant(from), fc::variant(to_address), fc::variant(memo_message), fc::variant(builder_path)}).wait();
+            return result.as<hsrcore::wallet::TransactionBuilder>();
         }
         fc::variant_object CommonApiRpcClient::about() const
         {
@@ -1121,9 +1146,14 @@ namespace hsrcore {
             fc::variant result = get_json_connection()->async_call("get_work", std::vector<fc::variant>{}).wait();
             return result.as<MiningWorkPackage>();
         }
-        bool CommonApiRpcClient::submit_block(const std::string& HashNoNonce, uint64_t Nonce)
+        bool CommonApiRpcClient::submit_block(const std::string& HashNoNonce, uint64_t Nonce, uint64_t Extra_Nonce)
         {
-            fc::variant result = get_json_connection()->async_call("submit_block", std::vector<fc::variant>{fc::variant(HashNoNonce), fc::variant(Nonce)}).wait();
+            fc::variant result = get_json_connection()->async_call("submit_block", std::vector<fc::variant>{fc::variant(HashNoNonce), fc::variant(Nonce), fc::variant(Extra_Nonce)}).wait();
+            return result.as<bool>();
+        }
+        bool CommonApiRpcClient::submit_blockex(const std::string& data)
+        {
+            fc::variant result = get_json_connection()->async_call("submit_blockex", std::vector<fc::variant>{fc::variant(data)}).wait();
             return result.as<bool>();
         }
         bool CommonApiRpcClient::set_coinbase(const std::string& account_name)

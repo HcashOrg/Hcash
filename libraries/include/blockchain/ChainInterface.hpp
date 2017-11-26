@@ -204,7 +204,7 @@ namespace hsrcore {
             */
             fc::ripemd160                      get_current_random_seed()const;
 
-			std::pair<int32_t, int32_t>          get_current_production_info(bool is_coinstake)const;
+			int32_t					           get_current_production_info(bool is_coinstake)const;
             /**  set_required_confirmations
             * store the input uint64_t value into property database with the id confirmation_requirement
             *

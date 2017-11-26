@@ -26,7 +26,8 @@ namespace hsrcore {
             contact_entry_type = 4,
             property_entry_type = 7,
             setting_entry_type = 9,
-			contract_entry_type = 10
+			contract_entry_type = 10,
+			multisig_balance_id_type=11
         };
 
         enum PropertyEnum
@@ -242,6 +243,7 @@ namespace hsrcore {
         typedef WalletEntry<TransactionData, transaction_entry_type>    WalletTransactionEntry;
         typedef WalletEntry<Setting, setting_entry_type>        WalletSettingEntry;
 		typedef WalletEntry<ContractEntry, contract_entry_type> WalletContractEntry;
+		typedef WalletEntry<BalanceIdType, multisig_balance_id_type> WalletMultisigBalanceId;
 
 		typedef optional<WalletContractEntry>                             oWalletContractEntry;
         typedef optional<WalletPropertyEntry>                             oWalletPropertyEntry;
@@ -251,6 +253,7 @@ namespace hsrcore {
         typedef optional<WalletContactEntry>                              oWalletContactEntry;
         typedef optional<WalletTransactionEntry>                          oWalletTransactionEntry;
         typedef optional<WalletSettingEntry>                              oWalletSettingEntry;
+		typedef optional<WalletMultisigBalanceId>						oWalletMultisigBalanceId;
 
         struct GenericWalletEntry
         {
@@ -351,6 +354,7 @@ FC_REFLECT_ENUM(hsrcore::wallet::WalletEntryTypeEnum,
     (contact_entry_type)
     (property_entry_type)
     (setting_entry_type)
+	(multisig_balance_id_type)
     )
 
     FC_REFLECT_ENUM(hsrcore::wallet::PropertyEnum,

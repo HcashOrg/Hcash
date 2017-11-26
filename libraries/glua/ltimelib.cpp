@@ -17,7 +17,7 @@
 using hsrcore::lua::api::global_glua_chain_api;
 
 
-#define ARGS_ERROR()   { global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "arguments wrong"); return 0; }
+#define ARGS_ERROR()   { global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "arguments wrong"); return 0; }
 
 static int time_difftime(lua_State *L) {
     if (lua_gettop(L) < 2 || !lua_isinteger(L, 1) || !lua_isinteger(L, 2)) {
@@ -62,7 +62,7 @@ static int time_add(lua_State *L) {
         cdt.tm_sec += offset;
     else
     {
-        global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR,
+        global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR,
             "time.add second argument need be 'year'/'month'/'day'/'hour'/'minute'/'second'");
         return 0;
     }

@@ -103,7 +103,7 @@ namespace glua
 		char* exception_msg = (char*)lua::lib::get_lua_state_value(_scope->L(), "exception_msg").string_value;
 		if (exception_code > 0)
 		{
-			if (exception_code == THINKYOUNG_API_LVM_LIMIT_OVER_ERROR)
+			if (exception_code == HSRCORE_API_LVM_LIMIT_OVER_ERROR)
 				FC_CAPTURE_AND_THROW(hsrcore::blockchain::contract_run_out_of_money);
 			else
 			{
@@ -121,7 +121,7 @@ namespace glua
 		char* exception_msg = (char*)lua::lib::get_lua_state_value(_scope->L(), "exception_msg").string_value;
 		if (exception_code > 0)
 		{
-			if (exception_code == THINKYOUNG_API_LVM_LIMIT_OVER_ERROR)
+			if (exception_code == HSRCORE_API_LVM_LIMIT_OVER_ERROR)
 				FC_CAPTURE_AND_THROW(hsrcore::blockchain::contract_run_out_of_money);
 			else
 			{

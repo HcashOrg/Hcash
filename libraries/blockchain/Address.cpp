@@ -36,6 +36,8 @@ namespace hsrcore {
 				addr.data[0] = 28;
 			else if (address_type == AddressType::script_id)
 				addr.data[0] = 63;
+			else if (address_type == AddressType::multisig_address)
+				addr.data[0] = 50;
 			memcpy(addr.data + 1, (char*)&rep, sizeof(rep));
 			auto check = fc::sha256::hash(addr.data, sizeof(rep) + 1);
 			check = fc::sha256::hash(check); // double
@@ -51,7 +53,7 @@ namespace hsrcore {
 			const size_t prefix_len = prefix.size();
 			if (base58str.size() <= prefix_len)
 				return false;
-			if (base58str.substr(0, prefix_len) != HSR_ADDRESS_PREFIX && base58str.substr(0, prefix_len) != CONTRACT_ADDRESS_PREFIX && base58str.substr(0, prefix_len) != SCRIPT_ID_PREFIX)
+			if (base58str.substr(0, prefix_len) != HSR_ADDRESS_PREFIX && base58str.substr(0, prefix_len) != CONTRACT_ADDRESS_PREFIX && base58str.substr(0, prefix_len) != SCRIPT_ID_PREFIX &&base58str.substr(0, prefix_len) != MULTI_ADDRESS_PREFIX)
 				return false;
 			vector<char> v = fc::from_base58(base58str);
 			auto check = ::fc::sha256::hash(&v[0], sizeof(fc::ripemd160) + 1);
@@ -73,6 +75,8 @@ namespace hsrcore {
 				return AddressType::contract_address;
 			else if (base58str[0] == 'S')
 				return AddressType::script_id;
+			else if (base58str[0] == 'M')
+				return AddressType::multisig_address;
         }
 
 		void Address::AddressHelper(const ::fc::ecc::public_key& pub, bool compressed, uint8_t version)
@@ -106,6 +110,8 @@ namespace hsrcore {
 				AddressHelper(pub, true, 28);
 			else if (address_type == AddressType::script_id)
 				AddressHelper(pub, true, 63);
+			else if (address_type == AddressType::multisig_address)
+				AddressHelper(pub, true, 50);
 			
         }
 

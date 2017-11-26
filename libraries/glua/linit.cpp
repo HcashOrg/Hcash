@@ -48,7 +48,7 @@ static const luaL_Reg loadedlibs[] = {
     { LUA_STRLIBNAME, luaopen_string },
     { LUA_TIMELIBNAME, luaopen_time },
     { LUA_MATHLIBNAME, luaopen_math },
-    { LUA_THINKYOUNGLIBNAME, luaopen_hsrcore },
+    { LUA_HSRCORELIBNAME, luaopen_hsrcore },
     { LUA_JSONLIBNAME, luaopen_json },
     { LUA_UTF8LIBNAME, luaopen_utf8 },
 	// { LUA_NETLIBNAME, luaopen_net },

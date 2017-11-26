@@ -375,6 +375,16 @@ namespace hsrcore {
             fc::variant wallet_import_hshare_private_key_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
             fc::variant wallet_import_hshare_encrypted_private_key_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
             fc::variant wallet_import_hshare_encrypted_private_key_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
+            fc::variant wallet_builder_add_signature_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
+            fc::variant wallet_builder_add_signature_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
+            fc::variant wallet_builder_file_add_signature_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
+            fc::variant wallet_builder_file_add_signature_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
+            fc::variant wallet_multisig_deposit_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
+            fc::variant wallet_multisig_deposit_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
+            fc::variant wallet_multisig_get_address_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
+            fc::variant wallet_multisig_get_address_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
+            fc::variant wallet_multisig_withdraw_start_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
+            fc::variant wallet_multisig_withdraw_start_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
             fc::variant about_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
             fc::variant about_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
             fc::variant get_info_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
@@ -499,6 +509,8 @@ namespace hsrcore {
             fc::variant get_work_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
             fc::variant submit_block_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
             fc::variant submit_block_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
+            fc::variant submit_blockex_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
+            fc::variant submit_blockex_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
             fc::variant set_coinbase_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
             fc::variant set_coinbase_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
             fc::variant get_staking_info_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);

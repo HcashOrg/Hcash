@@ -30,7 +30,7 @@ namespace glua
 			}
 			inline GluaException(const char *msg)
 			{
-				_code = THINKYOUNG_API_SIMPLE_ERROR;
+				_code = HSRCORE_API_SIMPLE_ERROR;
 				_error_msg = msg;
 			}
 			inline GluaException& operator=(const GluaException& other) {

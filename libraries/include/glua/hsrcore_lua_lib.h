@@ -39,7 +39,7 @@
 
 #define CURRENT_CONTRACT_NAME	"@self"
 
-#define THINKYOUNG_CONTRACT_INITING "hsrcore_contract_ininting"
+#define HSRCORE_CONTRACT_INITING "hsrcore_contract_ininting"
 
 #define STARTING_CONTRACT_ADDRESS "starting_contract_address"
 
@@ -388,9 +388,9 @@ namespace hsrcore
 
             const char *get_contract_id_in_api(lua_State *L);
 
-            // GluaStorageValue lthinkyoung_get_storage(lua_State *L, const char *contract_id, const char *name);
+            // GluaStorageValue lHSRCORE_get_storage(lua_State *L, const char *contract_id, const char *name);
             
-			//bool lthinkyoung_set_storage(lua_State *L, const char *contract_id, const char *name, GluaStorageValue value);
+			//bool lHSRCORE_set_storage(lua_State *L, const char *contract_id, const char *name, GluaStorageValue value);
 
             void free_bytecode_stream(GluaModuleByteStreamP stream);
 
@@ -544,7 +544,7 @@ namespace hsrcore
         error_msg[LUA_COMPILE_ERROR_MAX_LENGTH-1] = '\-';       \
         memcpy(error, error_msg, sizeof(char)*(1 + strlen(error_msg)));								\
      }												\
-     global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, error_format, ##__VA_ARGS__);		\
+     global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, error_format, ##__VA_ARGS__);		\
 } while(0)
 
 #define lcompile_error_set(L, error, error_format, ...) do {	   \
@@ -566,7 +566,7 @@ namespace hsrcore
 }
 
 #define lmalloc_error(L) do { \
-		global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "malloc memory error"); \
+		global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "malloc memory error"); \
 	} while(0)
 
 #define GLUA_TYPE_NAMESPACE_PREFIX "$type$"

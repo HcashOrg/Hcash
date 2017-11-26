@@ -153,7 +153,7 @@ void luaD_throw(lua_State *L, int errcode) {
                 errmsg = "not found global function";
             }
             // abort();
-            global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, errmsg.c_str());
+            global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, errmsg.c_str());
             hsrcore::lua::lib::notify_lua_state_stop(L);
             L->force_stopping = true;
         }
@@ -338,7 +338,7 @@ static void tryfuncTM(lua_State *L, StkId func) {
     StkId p;
     if (!ttisfunction(tm))
     {
-        global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, "Can't find __call method");
+        global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, "Can't find __call method");
         luaG_typeerror(L, func, "call");
     }
     if (L->force_stopping)

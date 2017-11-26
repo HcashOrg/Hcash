@@ -846,6 +846,7 @@ namespace hsrcore {
             }
 
 			void ChainDatabaseImpl::pay_miner(const BlockIdType& block_id,
+				const SignedBlockHeader& block_header,
 				const PublicKeyType& block_signee,
 				const PendingChainStatePtr& pending_state,
 				oBlockEntry& entry,bool is_coin_stake)const
@@ -853,7 +854,8 @@ namespace hsrcore {
 				oAssetEntry base_asset_entry = pending_state->get_asset_entry(AssetIdType(0));
 				FC_ASSERT(base_asset_entry.valid(), "Invalid asset");
 
-				BalanceEntry pay_balance(Address(block_signee), Asset(0, base_asset_entry->id), SlateIdType(0));
+				
+				
 
 				const ShareType max_new_shares = self->get_max_delegate_pay_issued_per_block(is_coin_stake);
 				const ShareType accepted_new_shares = max_new_shares;
@@ -865,11 +867,18 @@ namespace hsrcore {
 				base_asset_entry->collected_fees -= max_collected_fees;
 
 				const ShareType accepted_paycheck = accepted_new_shares + accepted_collected_fees;
-
-
-
-				const BalanceIdType deposit_balance_id = pay_balance.id();
-
+				BalanceEntry pay_balance(Address(block_signee), Asset(0, base_asset_entry->id), SlateIdType(0));
+				
+				BalanceIdType deposit_balance_id; 
+				if (block_header.is_multisig_account)
+				{
+					deposit_balance_id = block_header.coin_base;
+				}
+				else
+				{
+					
+					deposit_balance_id  = pay_balance.id();
+				}
 				oBalanceEntry cur_entry = pending_state->get_balance_entry(deposit_balance_id);
 				if (!cur_entry.valid())
 				{
@@ -992,6 +1001,8 @@ namespace hsrcore {
 			void ChainDatabaseImpl::verify_header(const DigestBlock& block_digest, const PublicKeyType& block_signee)const
 			{
 				try {
+					if (block_digest.is_coinstake == 0 && block_digest.is_multisig_account == 1)
+						FC_CAPTURE_AND_THROW(illegal_block_type,(block_digest.is_coinstake)(block_digest.is_multisig_account));
 					if (block_digest.block_num > 1 && block_digest.block_num != _head_block_header.block_num + 1)
 						FC_CAPTURE_AND_THROW(block_numbers_not_sequential, (block_digest)(_head_block_header));
 					if (block_digest.previous != _head_block_id)
@@ -1005,7 +1016,8 @@ namespace hsrcore {
 					//auto delta_seconds = (block_digest.timestamp - now).to_seconds();
 					//                     if (block_digest.timestamp > (now + ALP_BLOCKCHAIN_BLOCK_INTERVAL_SEC * 2))
 					//                         FC_CAPTURE_AND_THROW(time_in_future, (block_digest.timestamp)(now)(delta_seconds));
-					if(block_digest.nbits != self->GetNextTargetRequired(block_digest.previous, block_digest.is_coinstake))
+					auto new_bits = self->GetNextTargetRequired(block_digest.previous);
+					if(block_digest.nbits != new_bits.first || block_digest.sbits != new_bits.second)
 						FC_CAPTURE_AND_THROW(invalid_block_nbits);
 					if (block_digest.is_coinstake)
 					{
@@ -1029,8 +1041,18 @@ namespace hsrcore {
 
 					//                     auto expected_delegate = self->get_slot_signee(block_digest.timestamp, self->get_active_delegates());
 					// 
-					if (block_signee != block_digest.coin_base)
-					    FC_CAPTURE_AND_THROW(invalid_block_signee, (block_digest.coin_base));
+					if (block_digest.is_multisig_account)
+					{
+						auto balance_entry = self->get_balance_entry(block_digest.coin_base);
+						if (Address(block_signee) != *balance_entry->owners().begin())
+							FC_CAPTURE_AND_THROW(invalid_block_signee, (block_digest.coin_base));
+					}
+					else
+					{
+						if (Address(block_signee) != block_digest.coin_base)
+							FC_CAPTURE_AND_THROW(invalid_block_signee, (block_digest.coin_base));
+					}
+					
 				} FC_CAPTURE_AND_RETHROW((block_digest)(block_signee))
 			}
 
@@ -1149,7 +1171,7 @@ namespace hsrcore {
 					fc::raw::pack(enc, last_modify);
 					if (block_header.is_coinstake)
 					{
-						BalanceEntry temp_balanceID((Address)block_header.coin_base,Asset(0),SlateIdType());
+						BalanceEntry temp_balanceID(block_header.coin_base,Asset(0),SlateIdType());
 						auto balance_entry = self->get_balance_entry(temp_balanceID.id());
 						if (balance_entry.valid())
 						{
@@ -1196,16 +1218,15 @@ namespace hsrcore {
 				const PendingChainStatePtr& pending_state)const
 			{
 				try {
-					vector<std::pair<int32_t, int32_t>> production_info_vec;
+					vector<int32_t> production_info_vec;
 					production_info_vec.reserve(2);
 					production_info_vec.push_back(pending_state->get_current_production_info(0));
 					production_info_vec.push_back(pending_state->get_current_production_info(1));
-					if ((production_info_vec[0].first + production_info_vec[1].first) != (block_header.block_num - 1))
+					if ((production_info_vec[0] + production_info_vec[1]) != (block_header.block_num - 1))
 					{
 						//rebuild index
-						int32_t pos_prev_num,pow_prev_num;
 						int32_t pos_count, pow_count;
-						pos_count = pow_count = pos_prev_num = pow_prev_num = 0;
+						pos_count = pow_count =  0;
 						for (int i = 1; i < block_header.block_num; ++i)
 						{
 							auto header_id = pending_state->get_block_id(i);
@@ -1220,67 +1241,19 @@ namespace hsrcore {
 								pow_count += 1;
 							}
 						}
-						if (pos_count >= HSR_ADJUST_DIFFICULTY_INTERAL || pow_count >= HSR_ADJUST_DIFFICULTY_INTERAL)
-						{
-							int temp_pos_count = 0;
-							int temp_pow_count = 0;
-							for (int j = block_header.block_num - 1; j > 0; --j)
-							{
-								auto header_id = pending_state->get_block_id(j);
-								auto header = pending_state->get_block_header(header_id);
-								if (header.is_coinstake)
-								{
-									temp_pos_count += 1;
-									
-								}
-								else
-								{
-									temp_pow_count += 1;
-								}
-								if (temp_pos_count == HSR_ADJUST_DIFFICULTY_INTERAL)
-								{
-									pos_prev_num = j;
-									
-								}
-								if (temp_pow_count == HSR_ADJUST_DIFFICULTY_INTERAL)
-								{
-									pow_prev_num = j;
-								}
-								if (temp_pos_count >= HSR_ADJUST_DIFFICULTY_INTERAL && temp_pow_count >= HSR_ADJUST_DIFFICULTY_INTERAL)
-									break;
-
-							}
-						}
 						pending_state->store_property_entry(PropertyIdType::pos_count, variant(pos_count));
-						pending_state->store_property_entry(PropertyIdType::pos_previous_cache, variant(pos_prev_num));
 						pending_state->store_property_entry(PropertyIdType::pow_count, variant(pow_count));
-						pending_state->store_property_entry(PropertyIdType::pow_previous_cache, variant(pow_prev_num));
 					}
 					auto production_info = pending_state->get_current_production_info(block_header.is_coinstake);
-					int32_t count_new = production_info.first + 1 ;
-					int32_t temp_prev_num = production_info.second;
-					if (count_new >= HSR_ADJUST_DIFFICULTY_INTERAL)
-					{
-						for (int i = temp_prev_num + 1; i < block_header.block_num; ++i)
-						{
-							auto header_id = pending_state->get_block_id(i);
-							auto header = pending_state->get_block_header(header_id);
-							if (header.is_coinstake == block_header.is_coinstake)
-							{
-								temp_prev_num = i;
-								break;
-							}
-						}
-					}
+					int32_t count_new = production_info + 1 ;
+					
 					if (block_header.is_coinstake)
 					{
 						pending_state->store_property_entry(PropertyIdType::pos_count, variant(count_new));
-						pending_state->store_property_entry(PropertyIdType::pos_previous_cache, variant(temp_prev_num));
 					}
 					else
 					{
 						pending_state->store_property_entry(PropertyIdType::pow_count, variant(count_new));
-						pending_state->store_property_entry(PropertyIdType::pow_previous_cache, variant(temp_prev_num));
 					}
 
 
@@ -1381,7 +1354,7 @@ namespace hsrcore {
 						block_entry = self->get_block_entry(block_id);
 						apply_transactions(block_data, pending_state);
 						summary.applied_changes->event_vector = pending_state->event_vector;
-						pay_miner(block_id, block_signee, pending_state, block_entry, block_data.is_coinstake);
+						pay_miner(block_id, SignedBlockHeader(block_data), block_signee, pending_state, block_entry, block_data.is_coinstake);
 						update_block_modify(block_data);
 						//update_active_delegate_list(block_data.block_num, pending_state);
 						//update_random_seed(block_data.previous_secret, pending_state, block_entry);
@@ -1905,7 +1878,7 @@ namespace hsrcore {
 			if (!delegate_entry.valid())
 			{
 				delegate_entry = AccountEntry();
-				delegate_entry->name = (string)Address(block_header.coin_base);
+				delegate_entry->name = (string)block_header.coin_base;
 				delegate_entry->owner_key = block_header.signee();
 				delegate_entry->set_active_key(fc::time_point::now(), block_header.signee());
 			}
@@ -2616,44 +2589,37 @@ namespace hsrcore {
 
 
 
-		uint32_t ChainDatabase::GetNextTargetRequired(BlockIdType pindexLast, bool fProofOfStake)
+		std::pair<uint32_t, uint32_t> ChainDatabase::GetNextTargetRequired(BlockIdType pindexLast)
 		{
-			CBigNum bnTargetLimit = fProofOfStake ? CBigNum(~(uint256(0)) >> 45) : CBigNum(~(uint256(0)) >> 25);
+			CBigNum pos_bnTargetLimit = CBigNum(~(uint256(0)) >> 25);
+			CBigNum pow_bnTargetLimit = CBigNum(~(uint256(0)) >> 20);
 			if (pindexLast == BlockIdType())//genesis block
-				return bnTargetLimit.GetCompact();
-			
-			auto last_block = GetLastBlockHeader(pindexLast, fProofOfStake);
-			if (last_block.previous == BlockIdType())//first block
-				return bnTargetLimit.GetCompact();
+				return std::make_pair(pow_bnTargetLimit.GetCompact(), pos_bnTargetLimit.GetCompact());
 
-			auto prev_block = GetLastBlockHeader(last_block.previous, fProofOfStake);
-			if (prev_block.previous == BlockIdType())//second block
-				return bnTargetLimit.GetCompact();
-			auto production_info = get_current_production_info(fProofOfStake);
+			auto block_header = get_block_header(pindexLast);
 
-			if (production_info.first == -1 || production_info.second == -1 )
+			if (block_header.block_num % HSR_ADJUST_DIFFICULTY_INTERAL != 0)
 			{
-				FC_THROW_EXCEPTION(illegal_production_info, "illegal cache production info please wait a new block");
-			}
-			
-
-			int64_t nTargetSpacing = HSR_PRODUCTE_BLOCK_INTERAL *HSR_ADJUST_DIFFICULTY_INTERAL;
-			CBigNum bnNew;
-			if (production_info.first%HSR_ADJUST_DIFFICULTY_INTERAL != 0 && production_info.first >0)
-			{
-				return last_block.nbits;
-				
-			}
-			auto two_hundred_prev_block = get_block_header(production_info.second);
-
-			if (two_hundred_prev_block.is_coinstake != fProofOfStake)
-			{
-				FC_THROW_EXCEPTION(illegal_production_info, "illegal cache production info please wait a new block");
+				return std::make_pair(block_header.nbits, block_header.sbits);
 			}
 
 
-			int64_t nActualSpacing = (last_block.timestamp - two_hundred_prev_block.timestamp).to_seconds();
-			bnNew.SetCompact(last_block.nbits);
+
+
+			int64_t nTargetPerSpacing = HSR_PRODUCTE_BLOCK_INTERAL / 2;
+			int64_t first_block_number = block_header.block_num - HSR_ADJUST_DIFFICULTY_INTERAL;
+			if (first_block_number == 0)
+				first_block_number = 1;
+			auto first_header = get_block_header(first_block_number);
+
+
+			CBigNum bnNew[2];
+			bnNew[0].SetCompact(block_header.nbits);
+			bnNew[1].SetCompact(block_header.sbits);
+			//cal pow next bits
+			int64_t nTargetSpacing = nTargetPerSpacing * HSR_ADJUST_DIFFICULTY_INTERAL;
+			int64_t nActualSpacing = (block_header.timestamp - first_header.timestamp).to_seconds();
+
 			if (nActualSpacing > nTargetSpacing * 4)
 			{
 				nActualSpacing = nTargetSpacing * 4;
@@ -2662,15 +2628,96 @@ namespace hsrcore {
 			{
 				nActualSpacing = nTargetSpacing / 4;
 			}
-			
-			bnNew *= nActualSpacing;
-			bnNew /= nTargetSpacing;
+			for (int i = 0; i < 2; ++i)
+			{
+				bnNew[i] *= nActualSpacing;
+				bnNew[i] /= nTargetSpacing;
+			}
 
+			// mix adjust production count
+			auto pow_production_info = get_current_production_info(0);
+			auto pos_production_info = get_current_production_info(1);
+			if (pow_production_info == -1 || pos_production_info == -1)
+			{
+				FC_THROW_EXCEPTION(illegal_production_info, "illegal cache production info please wait a new block");
+			}
+			if (pow_production_info > pos_production_info)
+			{
+				// if pow count large than pos count increase pow difficult
+				if (pow_production_info > pos_production_info * 5)
+					pow_production_info = pos_production_info * 5;
+				bnNew[0] *= pos_production_info * 10;
+				bnNew[0] /= 10 * pos_production_info + pow_production_info;
 
-			if (bnNew <= 0 || bnNew > bnTargetLimit)
-				bnNew = bnTargetLimit;
-			return bnNew.GetCompact();
+			}
+			else if (pos_production_info < pow_production_info)
+			{
+				// if pos count large than pow count increase pos difficult
+				if (pos_production_info > pow_production_info * 5)
+					pos_production_info = pow_production_info * 5;
+				bnNew[1] *= pow_production_info * 10;
+				bnNew[1] /= 10 * pow_production_info + pos_production_info;
+			}
 
+			if (bnNew[0] <= 0 || bnNew[0] > pow_bnTargetLimit)
+				bnNew[0] = pow_bnTargetLimit;
+
+			if (bnNew[1] <= 0 || bnNew[1] > pos_bnTargetLimit)
+				bnNew[1] = pos_bnTargetLimit;
+			return std::make_pair(bnNew[0].GetCompact(), bnNew[1].GetCompact());
+		}
+					
+// 			auto last_block = get_block_header(pindexLast);
+// 			if (last_block.previous == BlockIdType())//first block
+// 				return bnTargetLimit.GetCompact();
+// 
+// 			auto prev_block = GetLastBlockHeader(last_block.previous, fProofOfStake);
+// 			if (prev_block.previous == BlockIdType())//second block
+// 				return bnTargetLimit.GetCompact();
+// 			auto production_info = get_current_production_info(fProofOfStake);
+// 
+// 			if (production_info.first == -1 || production_info.second == -1 )
+// 			{
+// 				FC_THROW_EXCEPTION(illegal_production_info, "illegal cache production info please wait a new block");
+// 			}
+// 
+// 
+// 			
+// 			////////////////////////////////////////////////////////////////////////
+// 			int64_t nTargetSpacing = HSR_PRODUCTE_BLOCK_INTERAL *HSR_ADJUST_DIFFICULTY_INTERAL;
+// 			CBigNum bnNew;
+// 			if (production_info.first%HSR_ADJUST_DIFFICULTY_INTERAL != 0 && production_info.first >0)
+// 			{
+// 				return last_block.nbits;
+// 				
+// 			}
+// 			auto two_hundred_prev_block = get_block_header(production_info.second);
+// 
+// 			if (two_hundred_prev_block.is_coinstake != fProofOfStake)
+// 			{
+// 				FC_THROW_EXCEPTION(illegal_production_info, "illegal cache production info please wait a new block");
+// 			}
+// 
+// 
+// 			int64_t nActualSpacing = (last_block.timestamp - two_hundred_prev_block.timestamp).to_seconds();
+// 			bnNew.SetCompact(last_block.nbits);
+// 			if (nActualSpacing > nTargetSpacing * 4)
+// 			{
+// 				nActualSpacing = nTargetSpacing * 4;
+// 			}
+// 			else if (nActualSpacing < nTargetSpacing / 4)
+// 			{
+// 				nActualSpacing = nTargetSpacing / 4;
+// 			}
+// 			
+// 			bnNew *= nActualSpacing;
+// 			bnNew /= nTargetSpacing;
+// 
+// 
+// 			if (bnNew <= 0 || bnNew > bnTargetLimit)
+// 				bnNew = bnTargetLimit;
+// 			return bnNew.GetCompact();
+// 
 
 			/////////////old version////////////////
 			
@@ -2688,10 +2735,10 @@ namespace hsrcore {
 // 				bnNew = bnTargetLimit;
 // 
 // 			return bnNew.GetCompact();
-		}
+//		}
 
 
-        FullBlock ChainDatabase::generate_block(const time_point_sec block_timestamp, PublicKeyType coin_base, const DelegateConfig& config,bool is_proof_of_stake)
+        FullBlock ChainDatabase::generate_block(const time_point_sec block_timestamp, Address coin_base, const DelegateConfig& config, uint32_t is_multisig_account, bool is_proof_of_stake)
         {
             try {
                 const time_point start_time = time_point::now();
@@ -2878,9 +2925,12 @@ namespace hsrcore {
                 new_block.block_num = head_block.block_num + 1;
                 new_block.timestamp = start_time;
                 new_block.transaction_digest = DigestBlock(new_block).calculate_transaction_digest();
-				new_block.nbits = GetNextTargetRequired(new_block.previous, is_proof_of_stake);
+				auto new_bits = GetNextTargetRequired(new_block.previous);
+				new_block.nbits = new_bits.first;
+				new_block.sbits = new_bits.second;
 				new_block.nNonce = 0;
 				new_block.coin_base = coin_base;
+				new_block.is_multisig_account = is_multisig_account;
 				if (is_proof_of_stake)
 					new_block.is_coinstake = 1;
 
@@ -2891,6 +2941,9 @@ namespace hsrcore {
                 return new_block;
             } FC_CAPTURE_AND_RETHROW((block_timestamp)(config))
         }
+
+
+
 
         void ChainDatabase::add_observer(ChainObserver* observer)
         {
@@ -3797,15 +3850,23 @@ namespace hsrcore {
 			try
 			{
 				CBigNum bnTarget;
-				bnTarget.SetCompact(pblock_header.nbits);
-
-				auto temp_entry = BalanceEntry(pblock_header.coin_base, Asset(0), SlateIdType());
-				auto balanceentry = get_balance_entry(temp_entry.id());
-				if (!balanceentry.valid())
+				bnTarget.SetCompact(pblock_header.sbits);
+				oBalanceEntry balance_entry;
+				if (pblock_header.is_multisig_account)
+				{
+					balance_entry = get_balance_entry(pblock_header.coin_base);
+				}
+				else
+				{
+					auto temp_entry = BalanceEntry(pblock_header.coin_base, Asset(0), SlateIdType());
+					balance_entry = get_balance_entry(temp_entry.id());
+				}
+				
+				if (!balance_entry.valid())
 				{
 					return false;
 				}
-				CBigNum bnWeight = CBigNum(balanceentry->balance);
+				CBigNum bnWeight = CBigNum(balance_entry->balance);
 				bnTarget = bnTarget * bnWeight;
 				uint256 nTarget = bnTarget.getuint256();
 				int success = 0;
@@ -3829,21 +3890,14 @@ namespace hsrcore {
 				auto temp_data = fc::raw::pack(modify_value);
 				data.insert(data.end(), temp_data.begin(), temp_data.end());
 				//coinbase balance id 
-				BalanceEntry temp_balance((Address)(pblock_header.coin_base), Asset(0), SlateIdType());
-				temp_data = fc::raw::pack(temp_balance.id());
+				temp_data = fc::raw::pack(balance_entry->id());
 				data.insert(data.end(), temp_data.begin(), temp_data.end());
 				//coinbase balance last update trx_id
 				TransactionIdType temp_trx_id;
-				auto temp_balance_entry = get_balance_entry(temp_balance.id());
-				if (temp_balance_entry.valid())
-				{
-					auto ttt = *temp_balance_entry;
-					temp_trx_id = temp_balance_entry->last_update_transaction_id;
-				}
-				else
-				{
-					return false;
-				}
+
+
+				temp_trx_id = balance_entry->last_update_transaction_id;
+
 				if (temp_trx_id == TransactionIdType())
 					return false;
 
@@ -3920,7 +3974,7 @@ namespace hsrcore {
 				wlog("CheckStake() : ${s} is not a proof-of-stake block", ("s", hashBlock.str()));
 				return false;
 			}
-			static std::map<PublicKeyType, fc::time_point_sec> nLastSearchTime_map ;
+			static std::map<Address, fc::time_point_sec> nLastSearchTime_map ;
 			if (!nLastSearchTime_map.count(pblock.coin_base))
 			{
 				nLastSearchTime_map[pblock.coin_base] = fc::time_point::now();
