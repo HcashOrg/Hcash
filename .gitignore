@@ -279,3 +279,12 @@ paket-files/
 __pycache__/
 *.pyc
 
+/Hcash.rar
+/hsrcore
+/HSRit.sln
+/HSRit.vcxproj
+/HSRit.vcxproj.filters
+*.filters
+*.vcxproj
+*.sln
+*.rar
