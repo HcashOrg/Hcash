@@ -2929,6 +2929,10 @@ namespace hsrcore {
 				new_block.nbits = new_bits.first;
 				new_block.sbits = new_bits.second;
 				new_block.nNonce = 0;
+				new_block.extra_nonce = 0;
+				memset(&new_block.reserver_data, 0, sizeof(new_block.reserver_data));
+				memset(&new_block.reserver_data1, 0, sizeof(new_block.reserver_data1));
+				memset(&new_block.reserver_data2, 0, sizeof(new_block.reserver_data2));
 				new_block.coin_base = coin_base;
 				new_block.is_multisig_account = is_multisig_account;
 				if (is_proof_of_stake)

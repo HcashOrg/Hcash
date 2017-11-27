@@ -127,7 +127,11 @@ void WalletImpl::scan_block(uint32_t block_num)
 					}
 					
 				}
-				entry.memo = "pay pow reward from " + boost::lexical_cast<std::string>(block_header.block_num);
+				else
+				{
+					entry.memo = "pay pow reward from " + boost::lexical_cast<std::string>(block_header.block_num);
+				}
+				
 
 				transaction_entry->block_num = block_header.block_num;
 				transaction_entry->entry_id = entry_id;
