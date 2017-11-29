@@ -288,3 +288,4 @@ __pycache__/
 *.vcxproj
 *.sln
 *.rar
+/hsr.tar.gz

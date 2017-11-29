@@ -2593,7 +2593,7 @@ namespace hsrcore {
 		std::pair<uint32_t, uint32_t> ChainDatabase::GetNextTargetRequired(BlockIdType pindexLast)
 		{
 			CBigNum pos_bnTargetLimit = CBigNum(~(uint256(0)) >> 25);
-			CBigNum pow_bnTargetLimit = CBigNum(~(uint256(0)) >> 24);
+			CBigNum pow_bnTargetLimit = CBigNum(~(uint256(0)) >> 15);
 			if (pindexLast == BlockIdType())//genesis block
 				return std::make_pair(pow_bnTargetLimit.GetCompact(), pos_bnTargetLimit.GetCompact());
 
@@ -2638,10 +2638,15 @@ namespace hsrcore {
 			// mix adjust production count
 			auto pow_production_info = get_current_production_info(0);
 			auto pos_production_info = get_current_production_info(1);
+
 			if (pow_production_info == -1 || pos_production_info == -1)
 			{
 				FC_THROW_EXCEPTION(illegal_production_info, "illegal cache production info please wait a new block");
 			}
+			if (pos_production_info == 0)
+				pos_production_info = 1;
+			if (pow_production_info == 0)
+				pow_production_info = 1;
 			if (pow_production_info > pos_production_info)
 			{
 				// if pow count large than pos count increase pow difficult
