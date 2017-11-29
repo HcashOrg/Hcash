@@ -176,6 +176,7 @@ namespace hsrcore {
             void    write_latest_builder(const TransactionBuilder& builder,
                 const std::string& alternate_path);
 
+			variant_object get_info_from_transaction_builder(const TransactionBuilder& builder);
             /**
             * Set wallet version
             *

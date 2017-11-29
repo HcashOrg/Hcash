@@ -6332,7 +6332,83 @@ namespace hsrcore {
             return account_keys;
         }
 
+		variant_object Wallet::get_info_from_transaction_builder(const TransactionBuilder& builder)
+		{
+			auto multisig_object = fc::mutable_variant_object();
+			
+			//auto pretty_trx = to_pretty_trx(builder.transaction_entry.trx);
+			//auto temp_ledger = pretty_trx.ledger_entries.begin();
+			multisig_object["from_address"] = variant();
+			multisig_object["to_address"] = variant();
+			multisig_object["required"] = variant();
+			multisig_object["addresses"] = variant();
+			multisig_object["signed_addresses"] = variant();
+			for (const auto & op : builder.transaction_entry.trx.operations)
+			{	
+				switch (op.type)
+				{
+				case withdraw_op_type:
+				{
+					auto withdraw_op = op.as<WithdrawOperation>();
+					auto bal_rec = my->_blockchain->get_balance_entry(withdraw_op.balance_id);
 
+					if (bal_rec.valid() && !bal_rec->is_multisig_balance())
+					{
+						multisig_object["from_address"] = (string)(*(bal_rec->condition.owner()));
+					}
+					else if (bal_rec.valid() && bal_rec->is_multisig_balance())
+					{
+						multisig_object["from_address"] = (string)((withdraw_op.balance_id));
+					}
+					break;
+				}
+				case deposit_op_type:
+				{
+					auto deposit_op = op.as<DepositOperation>();
+					if (deposit_op.condition.type == withdraw_multisig_type)
+						multisig_object["to_address"] = (string)deposit_op.balance_id();
+					else
+						multisig_object["to_address"] = (string)(*(deposit_op.condition.owner()));
+					break;
+				}
+				default:
+					break;
+				}
+			}
+			if (multisig_object["from_address"].as_string() != "")
+			{
+				auto balance_entry = my->_blockchain->get_balance_entry((Address)multisig_object["from_address"].as_string());
+				if (balance_entry.valid())
+				{
+					auto temp_condition = balance_entry->condition.as<WithdrawWithMultisig>();
+					multisig_object["required"] = temp_condition.required;
+					multisig_object["addresses"] = temp_condition.owners;
+					const auto trx_digest = builder.transaction_entry.trx.digest(my->_blockchain->get_chain_id());
+					set<Address>                                   signed_keys;
+					set<Address>								   result_keys;
+					for (const auto& sig : builder.transaction_entry.trx.signatures)
+					{
+
+						const auto key = fc::ecc::public_key(sig, trx_digest, false).serialize();
+						signed_keys.insert(Address(key));
+						signed_keys.insert(Address(PtsAddress(key, false, 56)));
+						signed_keys.insert(Address(PtsAddress(key, true, 56)));
+						signed_keys.insert(Address(PtsAddress(key, false, 0)));
+						signed_keys.insert(Address(PtsAddress(key, true, 0)));
+					}
+					for (auto addr : temp_condition.owners)
+					{
+						if (signed_keys.count(addr))
+						{
+							result_keys.emplace(addr);
+						}
+					}
+					multisig_object["signed_addresses"] = result_keys;
+				}
+			}
+				
+			return multisig_object;
+		}
 
         void Wallet::write_latest_builder(const TransactionBuilder& builder,
             const std::string& alternate_path)
@@ -6349,9 +6425,23 @@ namespace hsrcore {
             }
             else
             {
-                if (fc::exists(alternate_path))
-                    FC_THROW_EXCEPTION(file_already_exists, "That filename already exists!", ("filename", alternate_path));
-                fs.open(alternate_path);
+				std::string temp_path = alternate_path;
+				if (fc::exists(alternate_path))
+				{
+					fc::time_point_sec now = fc::time_point::now();
+					
+					auto pos = temp_path.find_last_of(".");
+					if (pos != -1)
+					{
+						temp_path = temp_path.substr(0,pos)+ now.to_non_delimited_iso_string() + temp_path.substr(pos,temp_path.size() );
+					}
+					else
+					{
+						temp_path += now.to_non_delimited_iso_string();
+					}
+						
+				}
+                fs.open(temp_path);
             }
             fs << fc::json::to_pretty_string(builder);
             fs.close();

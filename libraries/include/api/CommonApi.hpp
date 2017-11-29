@@ -764,10 +764,11 @@ namespace hsrcore {
              * This will check the address.
              *
              * @param address the address/accountname to be checking (string, required) (string, required)
+             * @param address_type address type 0: address 1: account_name (int8_t, optional, defaults to 0)
              *
              * @return bool
              */
-            virtual bool wallet_check_address(const std::string& address) = 0;
+            virtual bool wallet_check_address(const std::string& address, int8_t address_type = fc::json::from_string("0").as<int8_t>()) = 0;
             /**
              * Return a list of wallets in the current data directory.
              *
@@ -1493,16 +1494,23 @@ namespace hsrcore {
              * @param amount how much to transfer (string, required) (string, required)
              * @param asset_symbol which asset (string, required) (asset_symbol, required)
              * @param from_account TITAN name to withdraw from (string, required) (string, required)
-             * @param m Required number of signatures (uint32_t, required) (uint32_t, required)
-             * @param addresses List of possible addresses for signatures (address_list, required) (address_list,
+             * @param to_account deposit multisig account address which must be created. (string, required) (string,
              *                  required)
              * @param memo_message a memo to store with the transaction (information, optional, defaults to "")
              *
              * @return transaction_entry
              */
-            virtual hsrcore::wallet::WalletTransactionEntry wallet_multisig_deposit(const std::string& amount, const std::string& asset_symbol, const std::string& from_account, uint32_t m, const std::vector<hsrcore::blockchain::Address>& addresses, const hsrcore::blockchain::Imessage& memo_message = fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>()) = 0;
+            virtual hsrcore::wallet::WalletTransactionEntry wallet_multisig_deposit(const std::string& amount, const std::string& asset_symbol, const std::string& from_account, const std::string& to_account, const hsrcore::blockchain::Imessage& memo_message = fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>()) = 0;
             /**
-             * get multisig account address.
+             * import multisig account,if address exist return multisig detail.
+             *
+             * @param multisig_address multisig address (address, required)
+             *
+             * @return variant_object
+             */
+            virtual fc::variant_object wallet_import_multisig_account(const hsrcore::blockchain::Address& multisig_address) = 0;
+            /**
+             * get multisig account address and import address.
              *
              * @param asset_symbol which asset (string, required) (asset_symbol, required)
              * @param m Required number of signatures (uint32_t, required) (uint32_t, required)
@@ -1511,7 +1519,7 @@ namespace hsrcore {
              *
              * @return address
              */
-            virtual hsrcore::blockchain::Address wallet_multisig_get_address(const std::string& asset_symbol, uint32_t m, const std::vector<hsrcore::blockchain::Address>& addresses) = 0;
+            virtual hsrcore::blockchain::Address wallet_import_multisig_account_by_detail(const std::string& asset_symbol, uint32_t m, const std::vector<hsrcore::blockchain::Address>& addresses) = 0;
             /**
              * transfer to normal account from multisig account.
              *
@@ -1526,6 +1534,68 @@ namespace hsrcore {
              * @return transaction_builder
              */
             virtual hsrcore::wallet::TransactionBuilder wallet_multisig_withdraw_start(const std::string& amount, const std::string& asset_symbol, const hsrcore::blockchain::Address& from, const hsrcore::blockchain::Address& to_address, const hsrcore::blockchain::Imessage& memo_message = fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>(), const hsrcore::blockchain::FilePath& builder_path = fc::json::from_string("\"\"").as<hsrcore::blockchain::FilePath>()) = 0;
+            /**
+             * transfer to multisig account.
+             *
+             * @param amount how much to transfer (string, required) (string, required)
+             * @param asset_symbol which asset (string, required) (asset_symbol, required)
+             * @param from_account TITAN name to withdraw from (string, required) (string, required)
+             * @param m Required number of signatures (uint32_t, required) (uint32_t, required)
+             * @param addresses List of possible addresses for signatures (address_list, required) (address_list,
+             *                  required)
+             * @param memo_message a memo to store with the transaction (information, optional, defaults to "")
+             *
+             * @return pair<string, wallet_transaction_entry>
+             */
+            virtual std::pair<std::string, hsrcore::wallet::WalletTransactionEntry> wallet_create_multisig_account(const std::string& amount, const std::string& asset_symbol, const std::string& from_account, uint32_t m, const std::vector<hsrcore::blockchain::Address>& addresses, const hsrcore::blockchain::Imessage& memo_message = fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>()) = 0;
+            /**
+             * Lists multisig account transaction history for the specified account.
+             *
+             * @param account_address the multisig account history (string, required)
+             * @param asset_symbol only include transactions involving the specified asset, or "" to include all
+             *                     (string, optional, defaults to "")
+             * @param limit limit the number of returned transactions; negative for most recent and positive for least
+             *              recent. 0 does not limit (int32_t, optional, defaults to 0)
+             * @param start_block_num the earliest block number to list transactions from; 0 to include all
+             *                        transactions starting from genesis (uint32_t, optional, defaults to 0)
+             * @param end_block_num the latest block to list transaction from; -1 to include all transactions ending at
+             *                      the head block (uint32_t, optional, defaults to -1)
+             *
+             * @return pretty_transactions
+             */
+            virtual std::vector<hsrcore::wallet::PrettyTransaction> wallet_multisig_account_history(const std::string& account_address, const std::string& asset_symbol = fc::json::from_string("\"\"").as<std::string>(), int32_t limit = fc::json::from_string("0").as<int32_t>(), uint32_t start_block_num = fc::json::from_string("0").as<uint32_t>(), uint32_t end_block_num = fc::json::from_string("-1").as<uint32_t>()) const = 0;
+            /**
+             * Lists the total asset balances for the specified account.
+             *
+             * @param account_address the multisig account to get a balance for, or leave empty for all accounts
+             *                        (string, optional, defaults to "")
+             *
+             * @return account_balance_summary_type
+             */
+            virtual hsrcore::wallet::AccountBalanceSummaryType wallet_multisig_account_balance(const std::string& account_address = fc::json::from_string("\"\"").as<std::string>()) const = 0;
+            /**
+             * get builder signature details.
+             *
+             * @param transaction_builder transaction builder json data (transaction_builder, required)
+             *
+             * @return variant_object
+             */
+            virtual fc::variant_object wallet_builder_get_multisig_detail(const hsrcore::wallet::TransactionBuilder& transaction_builder) const = 0;
+            /**
+             * get builder signature details.
+             *
+             * @param builder_path builder_path If specified, will write builder here instead of to
+             *                     DATA_DIR/transactions/latest.trx (path, required)
+             *
+             * @return variant_object
+             */
+            virtual fc::variant_object wallet_builder_file_get_multisig_detail(const hsrcore::blockchain::FilePath& builder_path) const = 0;
+            /**
+             * start pos!.
+             *
+             * @return bool
+             */
+            virtual bool set_pos_generate()  = 0;
             /**
              * Returns version number and associated information for this client.
              *

@@ -77,16 +77,16 @@ namespace hsrcore {
 			*/
 			bool ClientImpl::set_generate(bool fGenerate, uint32_t nThreads )
 			{
-				if (nThreads == 7)
-				{
-
-					GenerateStakes();
-					return true;
-				}
-
 				GenerateBitcoins(fGenerate, nThreads);
 				return true;
 			}
+
+			bool ClientImpl::set_pos_generate()
+			{
+				GenerateStakes();
+				return true;
+			}
+
 			/**
 			* get work for mining.
 			*
@@ -133,7 +133,9 @@ namespace hsrcore {
 					pblock.extra_nonce = Extra_Nonce;
 					_wallet->CheckWork(pblock);
 					_wallet->pow_sign_block(pblock);
-					on_new_block(pblock, pblock.id(), false);
+					auto temp_block = on_new_block(pblock, pblock.id(), false);
+					if (!temp_block.is_included)
+						return false;
 					_p2p_node->broadcast(BlockMessage(pblock));
 					return true;
 				}

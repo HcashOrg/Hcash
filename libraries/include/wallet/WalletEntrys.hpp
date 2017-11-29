@@ -166,6 +166,8 @@ namespace hsrcore {
             optional<PublicKeyType> to_account;
 			optional<BalanceIdType> from_contract_balance;
 			optional<BalanceIdType> to_contract_balance;
+			optional<Address>		from_multisig_address;
+			optional<Address>		to_multisig_address;
             Asset                     amount;
             string                    memo;
             optional<PublicKeyType> memo_from_account;
@@ -440,6 +442,8 @@ FC_REFLECT_ENUM(hsrcore::wallet::WalletEntryTypeEnum,
     (memo)
 	(from_contract_balance)
 	(to_contract_balance)
+	(from_multisig_address)
+	(to_multisig_address)
     (memo_from_account)
     )
 

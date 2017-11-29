@@ -219,6 +219,12 @@ namespace hsrcore {
                 uint32_t m,
                 const vector<Address>& addresses);
 
+			TransactionBuilder& deposit_asset_to_multisig(
+				const Asset& amount,
+				const string& from_name,
+				uint32_t m,
+				const set<Address>& addresses);
+
             TransactionBuilder& withdraw_from_balance(const BalanceIdType& from,
                 const ShareType amount);
 

@@ -108,6 +108,14 @@ namespace hsrcore {
                 //out << pretty_transaction_list( transactions, client );
                 out << pretty_transaction_list_history(transactions, client);
             };
+			command_to_function["wallet_multisig_account_history"] = [](std::ostream& out, const fc::variants& arguments, const fc::variant& result, ClientRawPtr client)
+			{
+				const auto& transactions = result.as<vector<PrettyTransaction>>();
+				//out << pretty_transaction_list( transactions, client );
+				out << pretty_transaction_list_history(transactions, client);
+			};
+			
+
             command_to_function["wallet_transaction_history_splite"] = [](std::ostream& out, const fc::variants& arguments, const fc::variant& result, ClientRawPtr client)
             {
                 const auto& transactions = result.as<vector<PrettyTransaction>>();

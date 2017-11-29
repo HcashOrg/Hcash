@@ -15,6 +15,11 @@ namespace hsrcore {
         {
             return condition.owners();
         }
+		bool		BalanceEntry::is_multisig_balance()const
+		{
+			return condition.type == WithdrawConditionTypes::withdraw_multisig_type;
+		}
+
 
         optional<Address> BalanceEntry::owner()const
         {

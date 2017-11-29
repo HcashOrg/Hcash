@@ -733,24 +733,25 @@ namespace hsrcore {
                     bool all_trx_check = true;
 
 
-                    //多线程测试代码
-                    for (const auto& trx : block_data.user_transactions)
-                    {
-                        TransactionEvaluationStatePtr trx_eval_state = std::make_shared<TransactionEvaluationState>(pending_state.get());
-                        trx_eval_state->_skip_signature_check = !self->_verify_transaction_signatures;
+                    
+					for (const auto& trx : block_data.user_transactions)
+					{
+						TransactionEvaluationStatePtr trx_eval_state = std::make_shared<TransactionEvaluationState>(pending_state.get());
+						trx_eval_state->_skip_signature_check = !self->_verify_transaction_signatures;
 						trx_eval_state->cur_trx_id = trx.id();
+						////多线程测试代码
 						if (!trx_eval_state->_skip_signature_check)
-                        {
-                            std::vector<BalanceEntry> all_balances;
-                            std::vector<AccountEntry> all_accounts;
-                            trx_eval_state->transaction_entry_analy(trx, all_balances, all_accounts);
-                            auto check_thread = [=]()->bool
-                            {
-                                return trx_eval_state->transaction_signature_check(trx, all_balances, all_accounts);
-                            };
-                            signature_check_progress[trx_num] = _thread_pool.submit(check_thread);
-                            trx_eval_state->_skip_signature_check = true;
-                        }
+						{
+							std::vector<BalanceEntry> all_balances;
+							std::vector<AccountEntry> all_accounts;
+							trx_eval_state->transaction_entry_analy(trx, all_balances, all_accounts);
+							auto check_thread = [=]()->bool
+							{
+								return trx_eval_state->transaction_signature_check(trx, all_balances, all_accounts);
+							};
+							signature_check_progress[trx_num] = _thread_pool.submit(check_thread);
+							trx_eval_state->_skip_signature_check = true;
+						}
                         //end test
 
                         FC_ASSERT(trx.data_size() <= HSR_BLOCKCHAIN_MAX_TRX_SIZE, "trx size is out of the max trx size range");
@@ -819,21 +820,21 @@ namespace hsrcore {
                         ++trx_num;
                     }
 
-                    for (auto& fut : signature_check_progress)
-                    {
-                        try
-                        {
-                            if (fut.valid())
-                                if (!fut.get())
-                                {
-                                    all_trx_check = false;
-                                }
-                        }
-                        catch (const fc::exception&)
-                        {
-                        }
-                    }
-                    signature_check_progress.clear();
+					 for (auto& fut : signature_check_progress)
+					 {
+						 try
+						 {
+							 if (fut.valid())
+								 if (!fut.get())
+								 {
+									 all_trx_check = false;
+								 }
+						 }
+						 catch (const fc::exception&)
+						 {
+						 }
+					 }
+                    //signature_check_progress.clear();
                     // test start
                     if (!all_trx_check)
                     {
@@ -1009,7 +1010,7 @@ namespace hsrcore {
 						FC_CAPTURE_AND_THROW(invalid_previous_block_id, (block_digest)(_head_block_id));
 					//                     if (block_digest.timestamp.sec_since_epoch() % ALP_BLOCKCHAIN_BLOCK_INTERVAL_SEC != 0)
 					//                         FC_CAPTURE_AND_THROW(invalid_block_time);
-					if (block_digest.block_num > 1 && block_digest.timestamp <= _head_block_header.timestamp)
+					if (block_digest.block_num > 1 && block_digest.timestamp < _head_block_header.timestamp)
 						FC_CAPTURE_AND_THROW(time_in_past, (block_digest.timestamp)(_head_block_header.timestamp));
 
 					fc::time_point_sec now = hsrcore::blockchain::now();
@@ -2592,7 +2593,7 @@ namespace hsrcore {
 		std::pair<uint32_t, uint32_t> ChainDatabase::GetNextTargetRequired(BlockIdType pindexLast)
 		{
 			CBigNum pos_bnTargetLimit = CBigNum(~(uint256(0)) >> 25);
-			CBigNum pow_bnTargetLimit = CBigNum(~(uint256(0)) >> 20);
+			CBigNum pow_bnTargetLimit = CBigNum(~(uint256(0)) >> 24);
 			if (pindexLast == BlockIdType())//genesis block
 				return std::make_pair(pow_bnTargetLimit.GetCompact(), pos_bnTargetLimit.GetCompact());
 
@@ -2620,13 +2621,13 @@ namespace hsrcore {
 			int64_t nTargetSpacing = nTargetPerSpacing * HSR_ADJUST_DIFFICULTY_INTERAL;
 			int64_t nActualSpacing = (block_header.timestamp - first_header.timestamp).to_seconds();
 
-			if (nActualSpacing > nTargetSpacing * 4)
+			if (nActualSpacing > nTargetSpacing * 10)
 			{
-				nActualSpacing = nTargetSpacing * 4;
+				nActualSpacing = nTargetSpacing * 10;
 			}
-			else if (nActualSpacing < nTargetSpacing / 4)
+			else if (nActualSpacing < nTargetSpacing / 10)
 			{
-				nActualSpacing = nTargetSpacing / 4;
+				nActualSpacing = nTargetSpacing / 10;
 			}
 			for (int i = 0; i < 2; ++i)
 			{
