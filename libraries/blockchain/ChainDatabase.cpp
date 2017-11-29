@@ -2593,7 +2593,7 @@ namespace hsrcore {
 		std::pair<uint32_t, uint32_t> ChainDatabase::GetNextTargetRequired(BlockIdType pindexLast)
 		{
 			CBigNum pos_bnTargetLimit = CBigNum(~(uint256(0)) >> 25);
-			CBigNum pow_bnTargetLimit = CBigNum(~(uint256(0)) >> 15);
+			CBigNum pow_bnTargetLimit = CBigNum(~(uint256(0)) >> 24);
 			if (pindexLast == BlockIdType())//genesis block
 				return std::make_pair(pow_bnTargetLimit.GetCompact(), pos_bnTargetLimit.GetCompact());
 
