@@ -903,6 +903,13 @@ namespace hsrcore {
 				return Address::is_valid(addr, HSR_ADDRESS_PREFIX) || Address::is_valid(addr, CONTRACT_ADDRESS_PREFIX);
 			}
 
+			bool GluaChainApi::is_valid_contract_address(lua_State *L, const char *address_str)
+			{
+				std::string addr(address_str);
+				Address addr_obj(addr);
+				return addr_obj.judge_addr_type(addr) == AddressType::contract_address;
+			}
+
 			const char * GluaChainApi::get_system_asset_symbol(lua_State *L)
 			{
 				return HSR_BLOCKCHAIN_SYMBOL;

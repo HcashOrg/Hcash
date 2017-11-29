@@ -388,6 +388,8 @@ namespace hsrcore
 
             const char *get_contract_id_in_api(lua_State *L);
 
+			const char *get_prev_call_frame_contract_id_in_api(lua_State *L);
+
             // GluaStorageValue lHSRCORE_get_storage(lua_State *L, const char *contract_id, const char *name);
             
 			//bool lHSRCORE_set_storage(lua_State *L, const char *contract_id, const char *name, GluaStorageValue value);
@@ -419,6 +421,9 @@ namespace hsrcore
 
 			// 获取当前栈中最上层的合约API（也就当前所处的合约API）代码定义所在的合约ID
 			std::string get_current_using_contract_id(lua_State *L);
+
+			// 获取当前栈的上一级frame所处的合约API
+			std::string get_prev_call_frame_contract_id(lua_State *L);
 
             /**
             * load one chunk from lua bytecode file

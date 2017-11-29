@@ -1471,6 +1471,10 @@ int luaL_import_contract_module_from_address(lua_State *L)
     lua_pushstring(L, filename);  /* pass name as argument to module loader */
     lua_insert(L, -2);  /* name is 1st argument (before search data) */
     auto update_loaded_func = [&]() {
+		if (strlen(L->compile_error) > 0 || strlen(L->runerror) > 0)
+		{
+			return;
+		}
         if (lua_getfield(L, 2, filename) == LUA_TNIL) {   /* module set no value? */
             lua_pushboolean(L, 1);  /* use true as result */
             lua_pushvalue(L, -1);  /* extra copy to be returned */
@@ -1753,6 +1757,10 @@ int luaL_import_contract_module(lua_State *L)
     lua_pushstring(L, filename);  /* pass name as argument to module loader */
     lua_insert(L, -2);  /* name is 1st argument (before search data) */
     auto update_loaded_func = [&]() {
+		if (strlen(L->compile_error) > 0 || strlen(L->runerror) > 0)
+		{
+			return;
+		}
         if (lua_getfield(L, 2, filename) == LUA_TNIL) {   /* module set no value? */
             lua_pushboolean(L, 1);  /* use true as result */
             lua_pushvalue(L, -1);  /* extra copy to be returned */
@@ -2136,15 +2144,19 @@ std::shared_ptr<GluaModuleByteStream> lua_common_open_contract(lua_State *L, con
         std::string address;
         std::stringstream(pointer_str) >> address;
         auto stream = global_glua_chain_api->open_contract_by_address(L, address.c_str());
-        if (stream && stream->contract_level != CONTRACT_LEVEL_FOREVER && (stream->contract_name.length() < 1 || stream->contract_state == CONTRACT_STATE_DELETED))
+        if (stream)
         {
-            auto start_contract_address = hsrcore::lua::lib::get_starting_contract_address(L);
+            /* auto start_contract_address = hsrcore::lua::lib::get_starting_contract_address(L);
             if (start_contract_address.length()>0 && stream->contract_name.length() < 1 && std::string(address) == start_contract_address)
             {
                 return stream;
             }
             lerror_set(L, error, "only active and upgraded contract %s can be imported by others", namestr.c_str());
             return nullptr;
+			*/
+			if (stream->contract_state == CONTRACT_STATE_DELETED)
+				return nullptr;
+			return stream;
         }
         else
             return stream;

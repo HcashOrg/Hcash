@@ -553,6 +553,7 @@ namespace hsrcore {
 
             virtual void emit(lua_State *L, const char* contract_id, const char* event_name, const char* event_param) = 0;
 			virtual bool is_valid_address(lua_State *L, const char *address_str) = 0;
+			virtual bool is_valid_contract_address(lua_State *L, const char *address_str) = 0;
 			virtual const char *get_system_asset_symbol(lua_State *L) = 0;
           };
 
