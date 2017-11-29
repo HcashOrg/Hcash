@@ -678,7 +678,7 @@ next: (table) => bool
 			{
 				if (lua_gettop(L) < 1 || !lua_isstring(L, 1))
 				{
-					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "is_valid_contract_address need a param of address string");
+					hsrcore::lua::api::global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "is_valid_contract_address need a param of address string");
 					return 0;
 				}
 				auto address = luaL_checkstring(L, 1);
