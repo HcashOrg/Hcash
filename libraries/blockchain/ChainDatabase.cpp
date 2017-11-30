@@ -575,6 +575,66 @@ namespace hsrcore {
                     {
                         elog("           we already know about its previous: ${p}", ("p", block_data.previous));
                         prev_fork_data = prev_itr.value();
+						if (!prev_fork_data.can_link())
+						{
+							bool is_repair = false;
+							SignedBlockHeader temp_block_data = block_data;
+							while (true)
+							{
+								auto temp_prev_itr = _fork_db.find(temp_block_data.previous);
+								if (temp_prev_itr.valid())
+								{
+									if (temp_prev_itr.value().can_link())
+									{
+										is_repair = true;
+										break;
+									}
+									else
+									{
+										temp_block_data = _block_id_to_full_block.fetch(temp_block_data.previous);
+									}
+									
+								}
+								else
+								{
+									break;
+								}
+								
+								
+							}
+							if (is_repair)
+							{
+								while (true)
+								{
+
+									auto temp_prev_itr = _fork_db.find(temp_block_data.previous);
+									if (temp_prev_itr.valid())
+									{
+										if (temp_prev_itr.value().can_link())
+										{
+
+											break;
+										}
+										else
+										{
+											BlockForkData temp_prev_fork_data = temp_prev_itr.value();
+											temp_prev_fork_data.is_linked = true;
+											_fork_db.store(temp_block_data.previous, temp_prev_fork_data);
+											temp_block_data = _block_id_to_full_block.fetch(temp_block_data.previous);
+										}
+
+									}
+									else
+									{
+										break;
+									}
+								}
+								prev_fork_data.is_linked = true;
+							}
+						}
+						
+
+
                     }
                     else //if we don't know about the previous block even as a placeholder, create a placeholder for the previous block (placeholder block defaults as unlinked)
                     {
@@ -2286,6 +2346,7 @@ namespace hsrcore {
                 }
                 else
                 {
+					
                     elog("unable to link longest fork ${f}", ("f", longest_fork));
                     blockchain::ntp_time();
                     // 		 blockchain::update_ntp_time();
