@@ -602,8 +602,10 @@ namespace hsrcore {
 								
 								
 							}
+							
 							if (is_repair)
 							{
+								SignedBlockHeader temp_block_data = block_data;
 								while (true)
 								{
 
@@ -619,8 +621,11 @@ namespace hsrcore {
 										{
 											BlockForkData temp_prev_fork_data = temp_prev_itr.value();
 											temp_prev_fork_data.is_linked = true;
+											
 											_fork_db.store(temp_block_data.previous, temp_prev_fork_data);
+											mark_as_unchecked(temp_block_data.previous);
 											temp_block_data = _block_id_to_full_block.fetch(temp_block_data.previous);
+
 										}
 
 									}
@@ -1419,12 +1424,11 @@ namespace hsrcore {
 						update_block_modify(block_data);
 						//update_active_delegate_list(block_data.block_num, pending_state);
 						//update_random_seed(block_data.previous_secret, pending_state, block_entry);
-
-						save_undo_state(block_data.block_num, block_id, pending_state);
-						self->store_extend_status(block_id, 1);
+						
 						update_random_seed(block_data, pending_state, block_entry);
 						update_block_production_info(block_data, pending_state);
-
+						self->store_extend_status(block_id, 1);
+						save_undo_state(block_data.block_num, block_id, pending_state);
 						// TODO: Verify idempotency
 						pending_state->apply_changes();
 						

@@ -3349,7 +3349,7 @@ namespace hsrcore {
 			trans_entry.fee = fee;
 			trans_entry.trx = trx;
 			trans_entry.entry_id = trx.id();
-			trans_entry.trx_data = fc::raw::pack(trans_entry.trx);
+			trans_entry.trx_data = fc::raw::pack((Transaction)trans_entry.trx);
 			return trans_entry;
 		}
 
@@ -4166,7 +4166,7 @@ namespace hsrcore {
 				trans_entry.fee = required_fees + required_imessage_fee;
 				trans_entry.extra_addresses.push_back(to_address);
 				trans_entry.trx = trx;
-				trans_entry.trx_data = fc::raw::pack(trans_entry.trx);
+				trans_entry.trx_data = fc::raw::pack((Transaction)trans_entry.trx);
 				return trans_entry;
 			} FC_CAPTURE_AND_RETHROW((real_amount_to_transfer)(amount_to_transfer_symbol)(from_account_public_key)(to_address)(memo_message))
 		}
@@ -4312,7 +4312,7 @@ namespace hsrcore {
 				trans_entry.fee = required_fees;
 				trans_entry.extra_addresses.push_back(to_contract_address);
 				trans_entry.trx = trx;
-				trans_entry.trx_data = fc::raw::pack(trans_entry.trx);
+				trans_entry.trx_data = fc::raw::pack((Transaction)trans_entry.trx);
 				return trans_entry;
 			} FC_CAPTURE_AND_RETHROW((real_amount_to_transfer)(amount_to_transfer_symbol)(from_account_public_key_str)(to_contract_address))
 		}
@@ -4642,7 +4642,7 @@ namespace hsrcore {
 				trans_entry.fee = required_fees + margin_balance;
 				trans_entry.extra_addresses.push_back(contract_id);
 				trans_entry.trx = trx;
-				trans_entry.trx_data = fc::raw::pack(trans_entry.trx);
+				trans_entry.trx_data = fc::raw::pack((Transaction)trans_entry.trx);
 				return trans_entry;
 
 			} FC_CAPTURE_AND_RETHROW((contract_id)(upgrader_public_key_str)(new_contract_name)(new_contract_desc))
@@ -4889,7 +4889,7 @@ namespace hsrcore {
 				trans_entry.fee = required_fees;
 				trans_entry.extra_addresses.push_back(contract_id);
 				trans_entry.trx = trx;
-				trans_entry.trx_data = fc::raw::pack(trans_entry.trx);
+				trans_entry.trx_data = fc::raw::pack((Transaction)trans_entry.trx);
 				return trans_entry;
 
 			} FC_CAPTURE_AND_RETHROW((contract_id)(destroyer_public_key_str))
