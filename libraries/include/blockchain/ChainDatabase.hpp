@@ -1213,6 +1213,8 @@ namespace hsrcore {
             */
             virtual  oContractEntry  contract_lookup_by_id(const ContractIdType&)const override;
 
+			virtual oContractIdEntry contractid_lookup_by_name(const ContractName&)const override;
+
 
             /**
             * Lookup ContractIdType by contract name from blockchain db.
@@ -1241,6 +1243,9 @@ namespace hsrcore {
             */
             virtual void contract_insert_into_id_map(const ContractIdType&, const ContractEntry&) override;
 
+			virtual void contractname_insert_into_id_map(const ContractName&, const ContractIdEntry&) override;
+
+
             /**  Store contractStorage to db by contract_id
             *
             * @param  id  ContractIdType
@@ -1257,7 +1262,7 @@ namespace hsrcore {
             *
             * @return void
             */
-            virtual void contract_insert_into_name_map(const ContractName&, const ContractIdType&) override;
+            
 
             /**  Erase from db by contract_id
             *
@@ -1267,6 +1272,7 @@ namespace hsrcore {
             */
             virtual void contract_erase_from_id_map(const ContractIdType&) override;
 
+			virtual void contractname_erase_from_id_map(const ContractName&) override;
             /**  Erase from db by contract_id
             *
             * @param  id  ContractIdType
@@ -1281,7 +1287,7 @@ namespace hsrcore {
             *
             * @return void
             */
-            virtual void contract_erase_from_name_map(const ContractName&) override;
+            /*virtual void contract_erase_from_name_map(const ContractName&) override;*/
 
 			/** lookup result transaction id from db by request transaction id
 			*

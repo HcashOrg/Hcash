@@ -110,8 +110,10 @@ namespace hsrcore {
         class ChainInterface;
         struct  ContractEntry;
         struct ContractStorageEntry;
+		struct ContractIdEntry;
         //use fc optional to hold the return value
         typedef fc::optional<ContractEntry> oContractEntry;
+		typedef fc::optional<ContractIdEntry> oContractIdEntry;
         typedef fc::optional<ContractStorageEntry> oContractStorage;
         typedef fc::optional<ContractIdType> oContractIdType;
 
@@ -140,6 +142,19 @@ namespace hsrcore {
             static void remove(ChainInterface&, const ContractIdType&);
 
         };
+
+		struct  ContractIdEntry
+		{
+			ContractIdType id;
+			ContractIdEntry() {}
+			ContractIdEntry(const ContractIdType &id):id(id) {}
+
+			// database related functions
+			static oContractIdEntry lookup(const ChainInterface&, const ContractName&);
+			static void store(ChainInterface&, const ContractName&, const ContractIdEntry&);
+			static void remove(ChainInterface&, const ContractName&);
+
+		};
 
         struct ContractEntryPrintable
         {
@@ -228,7 +243,9 @@ namespace hsrcore {
 			friend struct RequestIdEntry;
 			friend struct ContractinTrxEntry;
 			friend struct ContractTrxEntry;
+			friend struct ContractIdEntry;
             //lookup related
+			virtual oContractIdEntry contractid_lookup_by_name(const ContractName&)const =0;
             virtual  oContractEntry  contract_lookup_by_id(const ContractIdType&)const = 0;
             virtual  oContractEntry  contract_lookup_by_name(const ContractName&)const = 0;
             virtual oContractStorage contractstorage_lookup_by_id(const ContractIdType&)const = 0;
@@ -238,16 +255,18 @@ namespace hsrcore {
 			virtual oContractTrxEntry contract_lookup_trxid_by_contract_id(const ContractIdType&)const = 0;
 
 			//insert related
+			virtual void contractname_insert_into_id_map(const ContractName&, const ContractIdEntry&)=0;
             virtual void contract_insert_into_id_map(const ContractIdType&, const ContractEntry&) = 0;
-            virtual void contract_insert_into_name_map(const ContractName&, const ContractIdType&) = 0;
+            //virtual void contract_insert_into_name_map(const ContractName&, const ContractIdType&) = 0;
             virtual void contractstorage_insert_into_id_map(const ContractIdType&, const ContractStorageEntry&) = 0;
 			virtual void contract_store_resultid_by_reqestid(const TransactionIdType& req, const ResultTIdEntry& res) = 0;
 			virtual void contract_store_requestid_by_resultid(const TransactionIdType& req, const RequestIdEntry& res) = 0;
 			virtual void contract_store_contractid_by_trxid(const TransactionIdType& id, const ContractinTrxEntry& res) = 0;
 			virtual void contract_store_trxid_by_contractid(const ContractIdType& id, const ContractTrxEntry & res) = 0;
 			//erase related
+			virtual void contractname_erase_from_id_map(const ContractName&) =0;
             virtual void contract_erase_from_id_map(const ContractIdType&) = 0;
-            virtual void contract_erase_from_name_map(const ContractName&) = 0;
+            //virtual void contract_erase_from_name_map(const ContractName&) = 0;
             virtual void contractstorage_erase_from_id_map(const ContractIdType&) = 0;
 			virtual void contract_erase_resultid_by_reqestid(const TransactionIdType& req) = 0;
 			virtual void contract_erase_requestid_by_resultid(const TransactionIdType& req) = 0;
@@ -305,6 +324,11 @@ FC_REFLECT_ENUM(hsrcore::blockchain::ContractApiType,
     (reserved)
     (trx_id)
     )
+	FC_REFLECT(hsrcore::blockchain::ContractIdEntry,
+	(id)
+		
+	)
+	
 
     FC_REFLECT(hsrcore::blockchain::ContractEntryPrintable,
     (contract_name)

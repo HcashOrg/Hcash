@@ -392,7 +392,7 @@ namespace hsrcore {
                 // contract related db
                 hsrcore::db::fast_level_map<ContractIdType, ContractEntry>                  _contract_id_to_entry;
                 hsrcore::db::fast_level_map<ContractIdType, ContractStorageEntry>               _contract_id_to_storage;
-                hsrcore::db::fast_level_map<ContractName, ContractIdType>                  _contract_name_to_id;
+                hsrcore::db::fast_level_map<ContractName, ContractIdEntry>                  _contract_name_to_id;
 				hsrcore::db::fast_level_map<TransactionIdType, ResultTIdEntry>		  _request_to_result_iddb;
 				hsrcore::db::fast_level_map<TransactionIdType, RequestIdEntry>		  _result_to_request_iddb;
 				hsrcore::db::fast_level_map<TransactionIdType, ContractinTrxEntry>		  _trx_to_contract_iddb;

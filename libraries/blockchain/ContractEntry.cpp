@@ -132,10 +132,10 @@ namespace hsrcore {
             try
             {
                 db.contract_insert_into_id_map(id, contract);
-                if (db.is_valid_contract_name(contract.contract_name))
-                {
-                    db.contract_insert_into_name_map(contract.contract_name, id);
-                }
+                 if (db.is_valid_contract_name(contract.contract_name))
+                 {
+                     db.contractname_insert_into_id_map(contract.contract_name, id);
+                 }
 
             }FC_CAPTURE_AND_RETHROW((id)(contract))
         }
@@ -149,12 +149,40 @@ namespace hsrcore {
                 if (info.valid())
                 {
                     db.contract_erase_from_id_map(id);
-                    //db.contract_erase_from_name_map(info->contract_name);
+                    db.contractname_erase_from_id_map(info->contract_name);
                 }
 
 
             }FC_CAPTURE_AND_RETHROW((id))
         }
+
+
+		oContractIdEntry ContractIdEntry::lookup(const ChainInterface& db, const ContractName& name)
+		{
+			try
+			{
+				return db.contractid_lookup_by_name(name);
+
+			}FC_CAPTURE_AND_RETHROW((name))
+
+		}
+
+		void ContractIdEntry::store(ChainInterface& db, const ContractName& name, const ContractIdEntry& entry)
+		{
+			try
+			{
+				db.contractname_insert_into_id_map(name, entry);
+				
+			}FC_CAPTURE_AND_RETHROW((name)(entry))
+		}
+		void ContractIdEntry::remove(ChainInterface& db, const ContractName& name)
+		{
+			try
+			{
+				db.contractname_erase_from_id_map(name);
+
+			}FC_CAPTURE_AND_RETHROW((name))
+		}
 
 
         oContractStorage ContractStorageEntry::lookup(const ChainInterface& db, const ContractIdType& id)

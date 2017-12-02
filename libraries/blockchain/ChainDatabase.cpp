@@ -591,7 +591,14 @@ namespace hsrcore {
 									}
 									else
 									{
-										temp_block_data = _block_id_to_full_block.fetch(temp_block_data.previous);
+										try{ 
+											temp_block_data = _block_id_to_full_block.fetch(temp_block_data.previous); 
+										}
+										catch (...)
+										{
+											break;
+										}
+										
 									}
 									
 								}
@@ -773,6 +780,7 @@ namespace hsrcore {
 
                     ilog("switch from fork ${id} to ${to_id}", ("id", _head_block_id)("to_id", block_id));
                     vector<BlockIdType> history = get_fork_history(block_id);
+
                     while (history.back() != _head_block_id)
                     {
                         ilog("    pop ${id}", ("id", _head_block_id));
@@ -4401,11 +4409,19 @@ namespace hsrcore {
 
             return oContractEntry();
         }
+		oContractIdEntry  ChainDatabase::contractid_lookup_by_name(const ContractName& name) const 
+		{
+			const auto iter = my->_contract_name_to_id.unordered_find(name);
+			if (iter != my->_contract_name_to_id.unordered_end()) return iter->second;
+
+			return oContractIdEntry();
+		}
+		
 
         oContractEntry  ChainDatabase::contract_lookup_by_name(const ContractName& name)const
         {
             const auto iter = my->_contract_name_to_id.unordered_find(name);
-            if (iter != my->_contract_name_to_id.unordered_end()) return contract_lookup_by_id(iter->second);
+            if (iter != my->_contract_name_to_id.unordered_end()) return contract_lookup_by_id(iter->second.id);
             return oContractEntry();
         }
 
@@ -4421,30 +4437,40 @@ namespace hsrcore {
             my->_contract_id_to_entry.store(id, info);
         }
 
+		void ChainDatabase::contractname_insert_into_id_map(const ContractName& name, const ContractIdEntry& entry)
+		{
+			my->_contract_name_to_id.store(name, entry);
+		}
+
         void ChainDatabase::contractstorage_insert_into_id_map(const ContractIdType& id, const ContractStorageEntry& storage)
         {
             my->_contract_id_to_storage.store(id, storage);
         }
 
-        void ChainDatabase::contract_insert_into_name_map(const ContractName& name, const ContractIdType& id)
-        {
-            my->_contract_name_to_id.store(name, id);
-        }
+        //void ChainDatabase::contract_insert_into_name_map(const ContractName& name, const ContractIdType& id)
+        //{
+        //    my->_contract_name_to_id.store(name, id);
+        //}
 
         void ChainDatabase::contract_erase_from_id_map(const ContractIdType& id)
         {
             my->_contract_id_to_entry.remove(id);
         }
 
+		void ChainDatabase::contractname_erase_from_id_map(const ContractName& name)
+		{
+			my->_contract_name_to_id.remove(name);
+		}
+
         void ChainDatabase::contractstorage_erase_from_id_map(const ContractIdType& id)
         {
             my->_contract_id_to_storage.remove(id);
         }
 
-        void ChainDatabase::contract_erase_from_name_map(const ContractName& name)
+        /*void ChainDatabase::contract_erase_from_name_map(const ContractName& name)
         {
             my->_contract_name_to_id.remove(name);
-        }
+        }*/
 
         oResultTIdEntry hsrcore::blockchain::ChainDatabase::contract_lookup_resultid_by_reqestid(const TransactionIdType & id) const
         {
