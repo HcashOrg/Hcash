@@ -124,7 +124,7 @@ namespace hsrcore {
 
         fc::logging_config create_default_logging_config(const fc::path&, bool enable_ulog);
         fc::path get_data_dir(const program_options::variables_map& option_variables);
-        Config load_config(const fc::path& datadir, const bool enable_ulog, const fc::optional<bool> statistics_enabled);
+        Config load_config(const fc::path& datadir, const bool enable_ulog, const fc::optional<bool> statistics_enabled,bool is_test_net);
         void load_and_configure_chain_database(const fc::path& datadir,
             const program_options::variables_map& option_variables);
 
@@ -136,6 +136,7 @@ namespace hsrcore {
                 ("help", "Display this help message and exit")
                 ("version", "Print version information and exit")
 
+				("testnet", "start blockchain in test-net")
                 ("data-dir", program_options::value<FilePath>(), "Set client data directory")
                 ("wallet-dir", program_options::value<string>(), "Set Wallet db directory")
                 ("genesis-config", program_options::value<string>(),
@@ -378,7 +379,7 @@ namespace hsrcore {
             return cfg;
         }
 
-        fc::path get_data_dir(const program_options::variables_map& option_variables)
+        fc::path get_data_dir(const program_options::variables_map& option_variables,bool is_test_net)
         {
             try {
                 fc::path datadir;
@@ -402,10 +403,13 @@ namespace hsrcore {
                         dir_name = "." + dir_name;
 #endif
 
-#ifdef HSR_TEST_NETWORK
-                        //dir_name += "-Test" + std::to_string(HSR_TEST_NETWORK_VERSION);
-                        dir_name += "-Test";
-#endif
+
+						if (is_test_net)
+						{
+							//dir_name += "-Test" + std::to_string(HSR_TEST_NETWORK_VERSION);
+							dir_name += "-Test";
+						}
+
                         return dir_name;
                     };
 
@@ -459,6 +463,7 @@ namespace hsrcore {
                         std::cout << "Error while deleting database index: " << e.what() << "\n";
                     }
                 }
+				
                 else
                 {
                     std::cout << "Loading blockchain from: " << (datadir / "chain").preferred_string() << "\n";
@@ -466,11 +471,15 @@ namespace hsrcore {
             } FC_RETHROW_EXCEPTIONS(warn, "unable to open blockchain from ${data_dir}", ("data_dir", datadir / "chain"))
         }
 
-        Config load_config(const fc::path& datadir, const bool enable_ulog, const fc::optional<bool> statistics_enabled)
+        Config load_config(const fc::path& datadir, const bool enable_ulog, const fc::optional<bool> statistics_enabled,bool is_test_net)
         {
             try {
                 fc::path config_file = datadir / "config.json";
                 Config cfg;
+				if (is_test_net)
+				{
+					cfg.load_test_seed_node();
+				}
                 if (fc::exists(config_file))
                 {
                     std::cout << "Loading config from file: " << config_file.preferred_string() << "\n";
@@ -1556,7 +1565,8 @@ namespace hsrcore {
             const std::function<void(float)> replay_status_callback)
         {
             try {
-                my->_config = load_config(data_dir, my->_enable_ulog, statistics_enabled);
+                my->_config = load_config(data_dir, my->_enable_ulog, statistics_enabled, my->_test_net);
+				my->_chain_db->set_test_net(my->_test_net);
 
                 fc::configure_logging(my->_config.logging);
                 // re-register the _user_appender which was overwritten by configure_logging()
@@ -1606,6 +1616,7 @@ namespace hsrcore {
                 //if we are using a simulated network, _p2p_node will already be set by client's constructor
                 if (!my->_p2p_node)
                     my->_p2p_node = std::make_shared<hsrcore::net::Node>(my->_user_agent);
+				my->_p2p_node->set_test_net(my->_test_net);
                 my->_p2p_node->set_node_delegate(my.get());
                 my->start_rebroadcast_pending_loop();
                 std::map<uint32_t, std::vector<ForkEntry>> forks = my->blockchain_list_forks();
@@ -1742,7 +1753,9 @@ namespace hsrcore {
             // parse command-line options
             auto option_variables = parse_option_variables(argc, argv);
 
-            fc::path datadir = hsrcore::client::get_data_dir(option_variables);
+			if (option_variables.count("testnet"))
+				my->_test_net = true;
+            fc::path datadir = hsrcore::client::get_data_dir(option_variables, my->_test_net);
             fc::path walletDir = hsrcore::client::get_wallet_dir(option_variables, datadir);
             if (!fc::exists(datadir))
             {
@@ -1776,6 +1789,7 @@ namespace hsrcore {
             fc::optional<fc::path> genesis_file_path;
             if (option_variables.count("genesis-config"))
                 genesis_file_path = option_variables["genesis-config"].as<string>();
+			
 
             my->_enable_ulog = option_variables["ulog"].as<bool>();
             fc::optional<bool> statistics_enabled;

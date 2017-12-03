@@ -618,6 +618,9 @@ namespace hsrcore {
             */
             uint32_t get_fork_list_num();
 
+
+			void set_test_net(bool is_test_net);
+
             /**  Export fork graph
             *
             * @param  start_block  uint32_t

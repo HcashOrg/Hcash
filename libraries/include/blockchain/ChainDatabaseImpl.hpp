@@ -400,6 +400,7 @@ namespace hsrcore {
                 // sandbox contract related
                 PendingChainStatePtr	_sandbox_pending_state = nullptr;
                 bool                    _is_in_sandbox = false;
+				bool					_test_net = false;
             };
 
         } // detail

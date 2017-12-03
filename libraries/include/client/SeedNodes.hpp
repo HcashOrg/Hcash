@@ -3,15 +3,14 @@
 namespace hsrcore {
     namespace client {
 
-#ifndef HSR_TEST_NETWORK
-        static const std::vector<std::string> SeedNodes
-        {
+
+		static const std::vector<std::string> SeedNodes
+		{
 			"47.74.176.222:50666",
 			"47.74.144.24:50666",
 			"47.74.144.184:50666"
-        };
-#else
-        static const std::vector<std::string> SeedNodes
+		};
+        static const std::vector<std::string> Test_SeedNodes
         {
 			"39.108.111.162:40988",
 			"39.108.83.28:40988",
@@ -25,7 +24,6 @@ namespace hsrcore {
 			"47.74.17.190:40988",
 			"47.90.212.56:40988"
         };
-#endif
 
     }
 } // hsrcore::client

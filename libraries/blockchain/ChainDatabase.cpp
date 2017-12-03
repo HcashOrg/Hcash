@@ -257,8 +257,8 @@ namespace hsrcore {
                     if (!genesis_file.valid())
                     {
                         std::cout << "Initializing state from built-in genesis file\n";
-                        config = get_builtin_genesis_block_config();
-                        chain_id = get_builtin_genesis_block_state_hash();
+                        config = get_builtin_genesis_block_config(_test_net);
+                        chain_id = get_builtin_genesis_block_state_hash(_test_net);
                     }
                     else
                     {
@@ -1706,6 +1706,7 @@ namespace hsrcore {
                         const size_t original_size = fc::directory_size(data_dir / "raw_chain/block_id_to_data_original");
 
                         my->open_database(data_dir);
+						
                         store_property_entry(PropertyIdType::database_version, variant(HSR_BLOCKCHAIN_DATABASE_VERSION));
 
                         const auto toggle_leveldb = [this](const bool enabled)
@@ -2680,33 +2681,69 @@ namespace hsrcore {
 
 
 
-			int64_t nTargetPerSpacing = HSR_PRODUCTE_BLOCK_INTERAL / 2;
+			int64_t nTargetPerSpacing = HSR_PRODUCTE_BLOCK_INTERAL;
 			int64_t first_block_number = block_header.block_num - HSR_ADJUST_DIFFICULTY_INTERAL;
+			int64_t first_block_num[2] = { -1,-1 }, end_block_num[2] = {-1,-1};
+			BlockHeader first_block[2], end_block[2];
 			if (first_block_number == 0)
 				first_block_number = 1;
-			auto first_header = get_block_header(first_block_number);
+
+			for (int i = first_block_number; i <= block_header.block_num;++i)
+			{
+				auto temp_header = get_block_header(i);
+				if (first_block_num[temp_header.is_coinstake] == -1)
+				{
+					first_block[temp_header.is_coinstake] = temp_header;
+				}
+				end_block_num[temp_header.is_coinstake] = temp_header.block_num;
+				end_block[temp_header.is_coinstake] = temp_header;
+			}
 
 
 			CBigNum bnNew[2];
 			bnNew[0].SetCompact(block_header.nbits);
 			bnNew[1].SetCompact(block_header.sbits);
 			//cal pow next bits
-			int64_t nTargetSpacing = nTargetPerSpacing * HSR_ADJUST_DIFFICULTY_INTERAL;
-			int64_t nActualSpacing = (block_header.timestamp - first_header.timestamp).to_seconds();
-
-			if (nActualSpacing > nTargetSpacing * 10)
-			{
-				nActualSpacing = nTargetSpacing * 10;
-			}
-			else if (nActualSpacing < nTargetSpacing / 10)
-			{
-				nActualSpacing = nTargetSpacing / 10;
-			}
+			
 			for (int i = 0; i < 2; ++i)
 			{
+				int64_t nProductionCount = 0;
+				int64_t nTargetSpacing = 0;
+				int64_t nActualSpacing = 0;
+				if (first_block_num[i] == -1 || end_block_num[i] == -1)
+				{
+					nTargetSpacing = 10;
+					nActualSpacing = 1;
+				}
+				else
+				{
+					nProductionCount = end_block[i].block_num - first_block[i].block_num;
+					if (nProductionCount == 0)
+					{
+						nTargetSpacing = 10;
+						nActualSpacing = 1;
+					}
+					else
+					{
+						nTargetSpacing = nTargetPerSpacing * nProductionCount;
+						nActualSpacing = (end_block[i].timestamp - first_block[i].timestamp).to_seconds();
+					}
+				}
+
+				if (nActualSpacing > nTargetSpacing * 10)
+				{
+					nActualSpacing = nTargetSpacing * 10;
+				}
+				else if (nActualSpacing < nTargetSpacing / 10)
+				{
+					nActualSpacing = nTargetSpacing / 10;
+				}
+
 				bnNew[i] *= nActualSpacing;
 				bnNew[i] /= nTargetSpacing;
 			}
+			
+
 
 			// mix adjust production count
 			auto pow_production_info = get_current_production_info(0);
@@ -2723,19 +2760,24 @@ namespace hsrcore {
 			if (pow_production_info > pos_production_info)
 			{
 				// if pow count large than pos count increase pow difficult
-				if (pow_production_info > pos_production_info * 5)
-					pow_production_info = pos_production_info * 5;
+				if (pow_production_info > pos_production_info * 2)
+					pow_production_info = pos_production_info * 2;
 				bnNew[0] *= pos_production_info * 10;
 				bnNew[0] /= 10 * pos_production_info + pow_production_info;
 
+				bnNew[1] *= 10 * pos_production_info + pow_production_info;
+				bnNew[1] /= pos_production_info * 10;
+
 			}
-			else if (pos_production_info < pow_production_info)
+			else if (pos_production_info > pow_production_info)
 			{
 				// if pos count large than pow count increase pos difficult
-				if (pos_production_info > pow_production_info * 5)
-					pos_production_info = pow_production_info * 5;
+				if (pos_production_info > pow_production_info * 2)
+					pos_production_info = pow_production_info * 2;
 				bnNew[1] *= pow_production_info * 10;
 				bnNew[1] /= 10 * pow_production_info + pos_production_info;
+				bnNew[0] *= 10 * pow_production_info + pos_production_info;
+				bnNew[0] /= pow_production_info * 10;
 			}
 
 			if (bnNew[0] <= 0 || bnNew[0] > pow_bnTargetLimit)
@@ -3273,6 +3315,10 @@ namespace hsrcore {
             }
             return return_value;
         }
+		void ChainDatabase::set_test_net(bool is_test_net)
+		{
+			my->_test_net = is_test_net;
+		}
         std::map<uint32_t, std::vector<ForkEntry>> ChainDatabase::get_forks_list()const
         {
             std::map<uint32_t, std::vector<ForkEntry>> fork_blocks;
@@ -3514,7 +3560,7 @@ namespace hsrcore {
         void ChainDatabase::generate_snapshot(const fc::path& filename)const
         {
             try {
-                GenesisState snapshot = get_builtin_genesis_block_config();
+                GenesisState snapshot = get_builtin_genesis_block_config(my->_test_net);
                 snapshot.timestamp = now();
                 snapshot.initial_balances.clear();
                 snapshot.sharedrop_balances.reserve_balances.clear();

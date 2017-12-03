@@ -283,6 +283,7 @@ namespace hsrcore {
                 std::unique_ptr<TeeDevice>                              _tee_device;
                 std::unique_ptr<TeeStream>                              _tee_stream;
                 bool                                                    _enable_ulog = false;
+				bool													_test_net = false;
 
                 fc::path                                                _data_dir;
 				

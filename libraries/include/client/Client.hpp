@@ -36,7 +36,7 @@ namespace hsrcore {
         //    using hsrcore::mail::mail_server_ptr;
 
         boost::program_options::variables_map parse_option_variables(int argc, char** argv);
-        fc::path get_data_dir(const boost::program_options::variables_map& option_variables);
+        fc::path get_data_dir(const boost::program_options::variables_map& option_variables, bool is_test_net);
         fc::variant_object version_info();
 
         namespace detail { class ClientImpl; }
@@ -91,6 +91,11 @@ namespace hsrcore {
             bool                statistics_enabled = false;
 
             vector<string>      default_peers = SeedNodes;
+
+			void load_test_seed_node()
+			{
+				default_peers = Test_SeedNodes;
+			}
             uint16_t            maximum_number_of_connections = HSR_NET_DEFAULT_MAX_CONNECTIONS;
             bool                use_upnp = true;
 
