@@ -11,15 +11,26 @@ namespace hsrcore {
 
             BlockIdType        previous;
             uint32_t             block_num = 0;
-            fc::time_point_sec   timestamp;
+            
             DigestType          transaction_digest;
             /** used for random number generation on the blockchain */
            /* SecretHashType     next_secret_hash;
             SecretHashType     previous_secret;*/
-			PublicKeyType	  coin_base;
-			int is_coinstake = 0;
+			Address	  coin_base;
+
+			uint32_t is_coinstake = 0;
+			uint32_t is_multisig_account = 0;
+			fc::array<char, 27> reserver_data;
 			uint32_t nbits;
+			uint32_t sbits;
+			fc::array<char, 12> reserver_data1;
+			fc::time_point_sec   timestamp;
 			uint64_t nNonce;
+			uint64_t extra_nonce;
+			fc::array<char, 24> reserver_data2;
+			//fc::array<char, 12> end_data;
+			
+			
 			uint256 GetPoWHash() const;
 			uint256 GetNoNonceHash() const;
         };
@@ -57,7 +68,7 @@ namespace hsrcore {
 } // hsrcore::blockchain
 
 FC_REFLECT(hsrcore::blockchain::BlockHeader,
-    (previous)(block_num)(timestamp)(transaction_digest)/*(next_secret_hash)(previous_secret)*/(coin_base)(is_coinstake)(nbits)(nNonce))
+    (previous)(block_num)(transaction_digest)(coin_base)(is_coinstake)(is_multisig_account)(reserver_data)(nbits)(sbits)(reserver_data1)(timestamp)(nNonce)(extra_nonce)(reserver_data2))
     FC_REFLECT_DERIVED(hsrcore::blockchain::SignedBlockHeader, (hsrcore::blockchain::BlockHeader), (delegate_signature))
     FC_REFLECT_DERIVED(hsrcore::blockchain::FullBlock, (hsrcore::blockchain::SignedBlockHeader), (user_transactions))
     FC_REFLECT_DERIVED(hsrcore::blockchain::DigestBlock, (hsrcore::blockchain::SignedBlockHeader), (user_transaction_ids))

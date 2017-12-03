@@ -157,6 +157,8 @@ namespace hsrcore {
 
             void      set_node_delegate(NodeDelegate* del);
 
+			void  set_test_net(bool is_test_net);
+
             void      load_configuration(const fc::path& configuration_directory);
 
             virtual void      listen_to_p2p_network();

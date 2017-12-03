@@ -204,20 +204,20 @@ static int luaB_error(lua_State *L) {
         lua_pushvalue(L, 1);
         lua_concat(L, 2);
     }
-	global_glua_chain_api->throw_exception(L, THINKYOUNG_API_THROW_ERROR, luaL_checkstring(L, 1));
+	global_glua_chain_api->throw_exception(L, HSRCORE_API_THROW_ERROR, luaL_checkstring(L, 1));
     return lua_error(L);
 }
 
 static int luaB_exit(lua_State *L) {
 	if (lua_gettop(L) < 1 || !lua_isstring(L, -1))
 	{
-		global_glua_chain_api->throw_exception(L, THINKYOUNG_API_THROW_ERROR, "empty error");
+		global_glua_chain_api->throw_exception(L, HSRCORE_API_THROW_ERROR, "empty error");
 		// hsrcore::lua::lib::notify_lua_state_stop(L);
 		return 0;
 	}
 	const char *msg = luaL_checkstring(L, -1);
 	lua_set_run_error(L, msg);
-	global_glua_chain_api->throw_exception(L, THINKYOUNG_API_THROW_ERROR, msg);
+	global_glua_chain_api->throw_exception(L, HSRCORE_API_THROW_ERROR, msg);
 	L->force_stopping = true;
 	// hsrcore::lua::lib::notify_lua_state_stop(L);
 	return 0;

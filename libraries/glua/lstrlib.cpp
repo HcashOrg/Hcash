@@ -620,7 +620,7 @@ static void reprepstate(MatchState *ms) {
     lua_assert(ms->matchdepth == MAXCCALLS);
 }
 
-#define ARGS_ERROR()   { global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "arguments wrong"); return 0; }
+#define ARGS_ERROR()   { global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "arguments wrong"); return 0; }
 
 static int str_split(lua_State *L)
 {

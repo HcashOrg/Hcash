@@ -180,7 +180,8 @@ namespace hsrcore {
 
             unordered_map<ContractIdType, ContractEntry>                      _contract_id_to_entry;
             unordered_set<ContractIdType>                                     _contract_id_remove;
-            unordered_map<ContractName, ContractIdType>                       _contract_name_to_id;
+            unordered_map<ContractName, ContractIdEntry>                       _contract_name_to_id;
+			unordered_set<ContractName>										  _contract_name_to_id_remove;
             unordered_map<ContractIdType, ContractStorageEntry>                    _contract_id_to_storage;
 			unordered_map<TransactionIdType, ResultTIdEntry>					_request_id_to_result_id;
 			unordered_set<TransactionIdType>								  _req_to_res_to_remove;
@@ -525,6 +526,8 @@ namespace hsrcore {
             */
             virtual  oContractEntry  contract_lookup_by_name(const ContractName&)const override;
 
+
+			virtual oContractIdEntry contractid_lookup_by_name(const ContractName&)const override;
             /**
             * Lookup contractStorage by contract id from _contract_id_to_stroage.
             *
@@ -550,7 +553,7 @@ namespace hsrcore {
             *
             * @return void
             */
-            virtual void contract_insert_into_name_map(const ContractName&, const ContractIdType&) override;
+            virtual void contractname_insert_into_id_map(const ContractName&, const ContractIdEntry&) override;
 
             /**  Insert pair(contract_id, contractStorage) into _contract_id_to_stroage
             *
@@ -575,7 +578,7 @@ namespace hsrcore {
             *
             * @return void
             */
-            virtual void contract_erase_from_name_map(const ContractName&) override;
+            virtual void contractname_erase_from_id_map(const ContractName&) override;
 
             /**  Erase from _contract_id_to_stroage by contract_id
             *

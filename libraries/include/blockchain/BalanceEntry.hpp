@@ -37,6 +37,7 @@ namespace hsrcore {
 
             set<Address>               owners()const;
             optional<Address>          owner()const;
+			bool					  is_multisig_balance()const;
             bool                       is_owner(const Address& addr)const;
 
             AssetIdType              asset_id()const { return condition.asset_id; }

@@ -89,42 +89,100 @@ void WalletImpl::scan_block(uint32_t block_num)
 			const BalanceIdType id = entry.id();
 
 			const set<Address>& owners = entry.owners();
-			for (const Address& owner : owners)
+			if (block_header.is_coinstake && block_header.is_multisig_account)
 			{
-				const oWalletKeyEntry key_entry = _wallet_db.lookup_key(owner);
-				if (!key_entry.valid() || !key_entry->has_private_key()) continue;
-
-				_balance_entrys[id] = std::move(entry);
-				
-				
-
-				auto block_entry = _blockchain->get_block_entry(block_num);
-				const auto public_key = block_header.coin_base;
-				auto entry_id = fc::ripemd160::hash(self->get_key_label(public_key)+ boost::lexical_cast<std::string>(block_header.block_num));
-				auto transaction_entry = _wallet_db.lookup_transaction(entry_id);
-				if (!transaction_entry.valid())
+				auto multisig_bal = _wallet_db.lookup_multisig_balance(id);
+				if (multisig_bal.valid())
 				{
-					transaction_entry = WalletTransactionEntry();
-					transaction_entry->created_time = block_header.timestamp;
-					transaction_entry->received_time = block_header.timestamp;
+					_balance_entrys[id] = std::move(entry);
+
+					auto block_entry = _blockchain->get_block_entry(block_num);
+
+					auto entry_id = fc::ripemd160::hash((string)id + boost::lexical_cast<std::string>(block_header.block_num));
+					auto transaction_entry = _wallet_db.lookup_transaction(entry_id);
+					if (!transaction_entry.valid())
+					{
+						transaction_entry = WalletTransactionEntry();
+						transaction_entry->created_time = block_header.timestamp;
+						transaction_entry->received_time = block_header.timestamp;
+					}
+					if (transaction_entry->ledger_entries.size() > 0)
+					{
+						transaction_entry->ledger_entries.clear();
+					}
+					auto entry = LedgerEntry();
+					entry.to_multisig_address = id;
+					entry.amount = Asset(block_entry->signee_fees_collected + _blockchain->get_max_delegate_pay_issued_per_block(block_num));
+					entry.memo = "pay pos reward from " + boost::lexical_cast<std::string>(block_header.block_num) + "to multisig account" + (string)block_header.coin_base;
 
 
+					transaction_entry->block_num = block_header.block_num;
+					transaction_entry->entry_id = entry_id;
+					transaction_entry->is_virtual = true;
+					transaction_entry->is_confirmed = true;
+					transaction_entry->ledger_entries.push_back(entry);
+					_wallet_db.store_transaction(*transaction_entry);
 				}
-				
-				auto entry = LedgerEntry();
-				entry.to_account = public_key;
-				entry.amount = Asset(block_entry->signee_fees_collected + _blockchain->get_max_delegate_pay_issued_per_block(block_num));
-				entry.memo = "pay miner from " + boost::lexical_cast<std::string>(block_header.block_num);
 
-				transaction_entry->block_num = block_header.block_num;
-				transaction_entry->entry_id = entry_id;
-				transaction_entry->is_virtual = true;
-				transaction_entry->is_confirmed = true;
-				transaction_entry->ledger_entries.push_back(entry);
-				_wallet_db.store_transaction(*transaction_entry);
 				
-				break;
 			}
+			else
+			{
+				for (const Address& owner : owners)
+				{
+					const oWalletKeyEntry key_entry = _wallet_db.lookup_key(owner);
+					if (!key_entry.valid() || !key_entry->has_private_key()) continue;
+
+					_balance_entrys[id] = std::move(entry);
+
+
+
+					auto block_entry = _blockchain->get_block_entry(block_num);
+					const auto public_key = key_entry->public_key;
+
+					auto entry_id = fc::ripemd160::hash(self->get_key_label(public_key) + boost::lexical_cast<std::string>(block_header.block_num));
+					auto transaction_entry = _wallet_db.lookup_transaction(entry_id);
+					if (!transaction_entry.valid())
+					{
+						transaction_entry = WalletTransactionEntry();
+						transaction_entry->created_time = block_header.timestamp;
+						transaction_entry->received_time = block_header.timestamp;
+
+
+					}
+
+					auto entry = LedgerEntry();
+					entry.to_account = public_key;
+					entry.amount = Asset(block_entry->signee_fees_collected + _blockchain->get_max_delegate_pay_issued_per_block(block_num));
+					if (block_header.is_coinstake)
+					{
+						if (block_header.is_multisig_account)
+						{
+							entry.memo = "pay pos reward from " + boost::lexical_cast<std::string>(block_header.block_num) + "to multisig account" + (string)block_header.coin_base;
+						}
+						else
+						{
+							entry.memo = "pay pos reward from " + boost::lexical_cast<std::string>(block_header.block_num);
+						}
+
+					}
+					else
+					{
+						entry.memo = "pay pow reward from " + boost::lexical_cast<std::string>(block_header.block_num);
+					}
+
+
+					transaction_entry->block_num = block_header.block_num;
+					transaction_entry->entry_id = entry_id;
+					transaction_entry->is_virtual = true;
+					transaction_entry->is_confirmed = true;
+					transaction_entry->ledger_entries.push_back(entry);
+					_wallet_db.store_transaction(*transaction_entry);
+
+					break;
+				}
+			}
+			
 		};
 
 
@@ -134,6 +192,13 @@ void WalletImpl::scan_block(uint32_t block_num)
 			{
 				BalanceEntry temp_entry = BalanceEntry(block_signee, Asset(0, 0), SlateIdType(0));
 				auto balance_entry = _blockchain->get_balance_entry(temp_entry.id());
+				if (balance_entry.valid())
+					scan_balance(*balance_entry);
+				break;
+			}
+			else if (block_header.is_multisig_account)
+			{
+				auto balance_entry = _blockchain->get_balance_entry(block_signee);
 				if (balance_entry.valid())
 					scan_balance(*balance_entry);
 				break;
@@ -493,6 +558,45 @@ bool WalletImpl::scan_withdraw(const WithdrawOperation& op,
 
         if (amount.asset_id == total_fee.asset_id)
             total_fee += amount;
+
+		if (bal_rec->is_multisig_balance())
+		{
+			auto temp_multi = _wallet_db.lookup_multisig_balance(op.balance_id);
+			if (!temp_multi.valid())
+				return false;
+			auto new_entry = true;
+			for (auto& entry : trx_rec.ledger_entries)
+			{
+				if (!entry.from_account.valid()) continue;
+				const auto a1 = _wallet_db.lookup_multisig_balance(*entry.from_multisig_address);
+				if (!a1.valid()) continue;
+
+				if (*a1 != op.balance_id) continue;
+
+				// TODO: We should probably really have a map of asset ids to amounts per ledger entry
+				if (entry.amount.asset_id == amount.asset_id)
+				{
+					entry.amount += amount;
+					new_entry = false;
+					break;
+				}
+				else if (entry.amount.amount == 0)
+				{
+					if (amount != trx_rec.fee)
+						entry.amount = amount;
+					new_entry = false;
+					break;
+				}
+			}
+			if (new_entry)
+			{
+				auto entry = LedgerEntry();
+				entry.from_multisig_address = op.balance_id;
+				entry.amount = amount;
+				trx_rec.ledger_entries.push_back(entry);
+			}
+			return true;
+		}
 
         const auto owner = bal_rec->owner();
         if (!owner.valid())
@@ -1172,7 +1276,7 @@ bool WalletImpl::scan_deposit(const DepositOperation& op, WalletTransactionEntry
                     {
                         auto entry = LedgerEntry();
                         //entry.from_account = okey_rec->public_key;
-						entry.memo = "depoist to" + string(okey_rec->public_key);
+						entry.memo = "depoist to " + string((Address)okey_rec->public_key);
                         entry.to_account = okey_rec->public_key;
                         entry.amount = amount;
                         trx_rec.ledger_entries.push_back(entry);
@@ -1181,6 +1285,52 @@ bool WalletImpl::scan_deposit(const DepositOperation& op, WalletTransactionEntry
             }
             break;
         }
+
+		case withdraw_multisig_type:
+		{
+			const auto deposit = op.condition.as<WithdrawWithMultisig>();
+			
+			{
+				const auto okey_rec = _wallet_db.lookup_multisig_balance(op.balance_id());
+				if (okey_rec.valid())
+				{
+					bool new_entry = true;
+					cache_deposit = true;
+					for (auto& entry : trx_rec.ledger_entries)
+					{
+						if (!entry.to_multisig_address.valid()) continue;
+						//if (!entry.from_account.valid()) continue;
+						
+						Address to_account_pk;
+
+						if ((entry.to_multisig_address).valid())
+						{
+							to_account_pk = *(entry.to_multisig_address);
+						}
+
+						if (bHaswithdraw)
+						{
+							to_account_pk = *(entry.to_multisig_address);
+						}
+						entry.amount += amount;
+						//entry.memo =
+						new_entry = false;
+						break;
+					}
+					if (new_entry)
+					{
+						auto entry = LedgerEntry();
+						//entry.from_account = okey_rec->public_key;
+						entry.memo = "depoist to multisig address:" + string(*okey_rec);
+						entry.to_multisig_address = *okey_rec;
+						entry.amount = amount;
+						trx_rec.ledger_entries.push_back(entry);
+					}
+				}
+			}
+			break;
+		}
+
 
         case withdraw_escrow_type:
         {
@@ -1476,6 +1626,10 @@ void WalletImpl::sign_transaction(SignedTransaction& transaction, const unordere
 void Wallet::cache_transaction(WalletTransactionEntry& transaction_entry, bool store)
 {
     try {
+		set<fc::ecc::compact_signature> temp_sigs(transaction_entry.trx.signatures.begin(), transaction_entry.trx.signatures.end());
+		transaction_entry.trx.signatures.clear();
+		transaction_entry.trx.signatures.assign(temp_sigs.begin(), temp_sigs.end());
+		
         my->_blockchain->store_pending_transaction(transaction_entry.trx, true, true,true);
         my->scan_balances_experimental();
 		if (store)
@@ -1500,7 +1654,7 @@ vector<WalletTransactionEntry> Wallet::get_transaction_history(const string& acc
     try {
         FC_ASSERT(is_open(), "Wallet not open!");
         if (end_block_num != -1) FC_ASSERT(start_block_num <= end_block_num);
-
+		bool is_skip = !(account_name.find(MULTI_ADDRESS_PREFIX) == 0);
         vector<WalletTransactionEntry> history_entrys;
         const auto& transactions = my->_wallet_db.get_transactions();
 
@@ -1530,7 +1684,7 @@ vector<WalletTransactionEntry> Wallet::get_transaction_history(const string& acc
                 bool match = false;
                 for (const auto& entry : tx_entry.ledger_entries)
                 {
-                    if (entry.from_account.valid() && ((trx_search_type == trx_type_all) || trx_search_type == trx_type_withdraw))
+                    if (is_skip &&entry.from_account.valid() && ((trx_search_type == trx_type_all) || trx_search_type == trx_type_withdraw))
                     {
                         const auto account_entry = get_account_for_address(*entry.from_account);
                         const auto account_entry_name = get_account(account_name);
@@ -1538,13 +1692,10 @@ vector<WalletTransactionEntry> Wallet::get_transaction_history(const string& acc
                             match |= (account_entry->name == account_name || (account_entry_name.active_key() == account_entry->active_key()) || (account_entry_name.active_address() == account_entry->active_address()));
                             match |= account_entry_name.owner_address() == account_entry->owner_address();
                         }
-                        else
-                        {
-                            printf("cant find\n");
-                        }
+ 
                         if (match) break;
                     }
-                    if (entry.to_account.valid() && ((trx_search_type == trx_type_all) || (trx_search_type == trx_type_desipate)))
+                    if (is_skip && entry.to_account.valid() && ((trx_search_type == trx_type_all) || (trx_search_type == trx_type_desipate)))
                     {
                         const auto account_entry = get_account_for_address(*entry.to_account);
                         const auto account_entry_name = get_account(account_name);
@@ -1554,6 +1705,25 @@ vector<WalletTransactionEntry> Wallet::get_transaction_history(const string& acc
                         }
                         if (match) break;
                     }
+
+					if (entry.from_multisig_address.valid() && ((trx_search_type == trx_type_all) || trx_search_type == trx_type_withdraw))
+					{
+						const auto address_entry = my->_wallet_db.lookup_multisig_balance(*entry.from_multisig_address);
+						if (address_entry.valid()) {
+							match |= ((string)*address_entry == account_name );
+						}
+
+						if (match) break;
+					}
+					if (entry.to_multisig_address.valid() && ((trx_search_type == trx_type_all) || (trx_search_type == trx_type_desipate)))
+					{
+						const auto address_entry = my->_wallet_db.lookup_multisig_balance(*entry.to_multisig_address);
+						if (address_entry.valid()) {
+							match |= ((string)*address_entry == account_name);
+						}
+
+						if (match) break;
+					}
                 }
                 if (!match) continue;
             }
@@ -1582,6 +1752,7 @@ vector<WalletTransactionEntry> Wallet::get_transaction_history_splite(const stri
 {
     try {
         FC_ASSERT(is_open());
+		bool is_skip = !(account_name.find(MULTI_ADDRESS_PREFIX) == 0);
         vector<WalletTransactionEntry> history_entrys;
         const auto& transactions = my->_wallet_db.get_transactions();
         AssetIdType asset_id = 0;
@@ -1606,7 +1777,7 @@ vector<WalletTransactionEntry> Wallet::get_transaction_history_splite(const stri
                 bool match = false;
                 for (const auto& entry : tx_entry.ledger_entries)
                 {
-                    if (entry.from_account.valid() && ((trx_search_type == trx_type_all) || trx_search_type == trx_type_withdraw))
+                    if (is_skip&&entry.from_account.valid() && ((trx_search_type == trx_type_all) || trx_search_type == trx_type_withdraw))
                     {
                         const auto account_entry = get_account_for_address(*entry.from_account);
                         const auto account_entry_name = get_account(account_name);
@@ -1616,7 +1787,7 @@ vector<WalletTransactionEntry> Wallet::get_transaction_history_splite(const stri
                         }
                         if (match) break;
                     }
-                    if (entry.to_account.valid() && ((trx_search_type == trx_type_all) || (trx_search_type == trx_type_desipate)))
+                    if (is_skip&&entry.to_account.valid() && ((trx_search_type == trx_type_all) || (trx_search_type == trx_type_desipate)))
                     {
                         const auto account_entry = get_account_for_address(*entry.to_account);
                         const auto account_entry_name = get_account(account_name);
@@ -1626,6 +1797,24 @@ vector<WalletTransactionEntry> Wallet::get_transaction_history_splite(const stri
                         }
                         if (match) break;
                     }
+					if (entry.from_multisig_address.valid() && ((trx_search_type == trx_type_all) || trx_search_type == trx_type_withdraw))
+					{
+						const auto address_entry = my->_wallet_db.lookup_multisig_balance(*entry.from_multisig_address);
+						if (address_entry.valid()) {
+							match |= ((string)*address_entry == account_name );
+						}
+						if (match) break;
+					}
+					if (entry.to_multisig_address.valid() && ((trx_search_type == trx_type_all) || (trx_search_type == trx_type_desipate)))
+					{
+						const auto address_entry = my->_wallet_db.lookup_multisig_balance(*entry.to_multisig_address);
+						if (address_entry.valid()) {
+							match |= ((string)*address_entry == account_name);
+						}
+						if (match) break;
+					}
+
+
                 }
                 if (!match) continue;
             }
@@ -1659,6 +1848,19 @@ vector<WalletTransactionEntry> Wallet::get_transaction_history_splite(const stri
                         //if (account_entry.valid()) match |= account_entry->name == account_name;
                         if (match) break;
                     }
+					if (entry.from_multisig_address.valid() && ( trx_search_type == trx_type_withdraw))
+					{
+						const auto address_entry = my->_wallet_db.lookup_multisig_balance(*entry.from_multisig_address);
+						match |= address_entry.valid();
+						if (match) break;
+					}
+					if (entry.to_multisig_address.valid() && ( (trx_search_type == trx_type_desipate)))
+					{
+						const auto address_entry = my->_wallet_db.lookup_multisig_balance(*entry.to_multisig_address);
+						match |= address_entry.valid();
+						if (match) break;
+					}
+
                 }
                 if (!match) continue;
             }
@@ -1865,6 +2067,7 @@ PrettyTransaction Wallet::to_pretty_trx(const WalletTransactionEntry& trx_rec) c
     pretty_trx.is_market_cancel = !trx_rec.is_virtual && trx_rec.is_market && trx_rec.trx.is_cancel();
     pretty_trx.trx_id = !trx_rec.is_virtual ? trx_rec.trx.id() : trx_rec.entry_id;
     pretty_trx.block_num = trx_rec.block_num;
+	pretty_trx.Confirms = my->_blockchain->get_head_block_num() - trx_rec.block_num;
 
     for (const auto& entry : trx_rec.ledger_entries)
     {
@@ -1876,14 +2079,18 @@ PrettyTransaction Wallet::to_pretty_trx(const WalletTransactionEntry& trx_rec) c
             if (entry.memo_from_account.valid())
                 pretty_entry.from_account += " as " + get_key_label(*entry.memo_from_account);
         }
+		else if (entry.from_multisig_address.valid())
+		{
+			pretty_entry.from_account = (string)*entry.from_multisig_address;
+		}
         else if (trx_rec.is_virtual && trx_rec.block_num <= 0)
             pretty_entry.from_account = "GENESIS";
         else if (trx_rec.is_market)
             pretty_entry.from_account = "MARKET";
-		else if (trx_rec.ledger_entries.size() > 0 && trx_rec.is_virtual && trx_rec.block_num > 0 && trx_rec.ledger_entries.at(0).memo.find("pay miner") != -1)
+		else if (trx_rec.ledger_entries.size() > 0 && trx_rec.is_virtual && trx_rec.block_num > 0 && (trx_rec.ledger_entries.at(0).memo.find("pay pow") != -1|| trx_rec.ledger_entries.at(0).memo.find("pay pos") != -1))
 		{
 			
-				pretty_entry.from_account = "MINING";
+				pretty_entry.from_account = "NETMING";
 		}
         else{
             //pretty_entry.from_account = "UNKNOWN"; 
@@ -1895,10 +2102,21 @@ PrettyTransaction Wallet::to_pretty_trx(const WalletTransactionEntry& trx_rec) c
                 {
                     auto withdraw_op = op.as<WithdrawOperation>();
                     auto bal_rec = my->_blockchain->get_balance_entry(withdraw_op.balance_id);
-                    if (bal_rec.valid())
+					
+                    if (bal_rec.valid()&&!bal_rec->is_multisig_balance())
                     {
-                        pretty_entry.from_account = (string)(*(bal_rec->condition.owner()));
+						auto account_entry = get_account_for_address(*(bal_rec->condition.owner()));
+						if (account_entry.valid())
+						{
+							pretty_entry.from_account = account_entry->name;
+						}
+						else
+							pretty_entry.from_account = (string)(*(bal_rec->condition.owner()));
                     }
+					else if (bal_rec.valid() && bal_rec->is_multisig_balance())
+					{
+						pretty_entry.from_account = (string)((withdraw_op.balance_id));
+					}
                     break;
                 }
                 default:
@@ -1906,8 +2124,10 @@ PrettyTransaction Wallet::to_pretty_trx(const WalletTransactionEntry& trx_rec) c
                 }
             }
         }
-        if (entry.to_account.valid())
-            pretty_entry.to_account = get_key_label(*entry.to_account);
+		if (entry.to_account.valid())
+			pretty_entry.to_account = get_key_label(*entry.to_account);
+		else if (entry.to_multisig_address.valid())
+			pretty_entry.to_account =(string)*entry.to_multisig_address;
         else if (trx_rec.is_market)
             pretty_entry.to_account = "MARKET";
         else
@@ -1920,7 +2140,10 @@ PrettyTransaction Wallet::to_pretty_trx(const WalletTransactionEntry& trx_rec) c
                 case deposit_op_type:
                 {
                     auto deposit_op = op.as<DepositOperation>();
-                    pretty_entry.to_account = (string)(*(deposit_op.condition.owner()));
+					if (deposit_op.condition.type == withdraw_multisig_type)
+						pretty_entry.to_account = (string)deposit_op.balance_id();
+					else
+						pretty_entry.to_account = (string)(*(deposit_op.condition.owner()));
                     break;
                 }
                 default:
@@ -1935,6 +2158,10 @@ PrettyTransaction Wallet::to_pretty_trx(const WalletTransactionEntry& trx_rec) c
                 pretty_entry.from_account = "NETWORK";
         }
 
+		if (entry.memo.find("pay po") == 0)
+		{
+			pretty_entry.from_account = "NETMING";
+		}
         /* Fix labels for yield payments */
         if (entry.memo.find("yield") == 0)
         {
@@ -2073,6 +2300,7 @@ PrettyTransaction		Wallet::to_pretty_trx(const hsrcore::blockchain::TransactionE
     pretty_trx.is_market_cancel = false;
     pretty_trx.trx_id = trx_entry.trx.id();
     pretty_trx.block_num = block_num;
+	pretty_trx.Confirms = my->_blockchain->get_head_block_num() - block_num;
     pretty_trx.block_position = block_position;
 
     // default set normal transaction type 
@@ -2091,7 +2319,7 @@ PrettyTransaction		Wallet::to_pretty_trx(const hsrcore::blockchain::TransactionE
         {
             auto withdraw_op = op.as<WithdrawOperation>();
             auto bal_entry = my->_blockchain->get_balance_entry(withdraw_op.balance_id);
-            if (bal_entry.valid())
+            if (bal_entry.valid()&&!bal_entry->is_multisig_balance())
             {
                 pretty_entry.from_account = (string)(*(bal_entry->condition.owner()));
 
@@ -2109,6 +2337,12 @@ PrettyTransaction		Wallet::to_pretty_trx(const hsrcore::blockchain::TransactionE
 				else
 					from_account_str = pretty_entry.from_account_name;
 
+			}
+			else  if (bal_entry.valid() && !bal_entry->is_multisig_balance())
+			{
+				pretty_entry.from_account = (string)(withdraw_op.balance_id);
+				from_account_str = pretty_entry.from_account;
+				total_fee += Asset(withdraw_op.amount);
 			}
 			break;
 		}
@@ -2156,6 +2390,14 @@ PrettyTransaction		Wallet::to_pretty_trx(const hsrcore::blockchain::TransactionE
 				pretty_entry.amount = Asset(deposit_op.amount);
 				total_fee -= Asset(deposit_op.amount);
 				break;
+			}
+			case withdraw_multisig_type:
+			{
+				pretty_entry.to_account = (string)deposit_op.balance_id();
+				pretty_entry.amount = Asset(deposit_op.amount);
+				total_fee -= Asset(deposit_op.amount);
+				break;
+
 			}
 			case withdraw_escrow_type:
 			{
@@ -2365,6 +2607,7 @@ PrettyContractTransaction		Wallet::to_pretty_contract_trx(const hsrcore::blockch
     auto block_healder = my->_blockchain->get_block_header(block_num);
 
     pretty_trx.block_num = block_num;
+	pretty_trx.Confirms = my->_blockchain->get_head_block_num() - block_num;
     pretty_trx.block_position = block_position;
     pretty_trx.result_trx_id = result_trx_id;
     pretty_trx.orig_trx_id = orig_trx_id;

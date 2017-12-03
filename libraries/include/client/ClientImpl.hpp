@@ -214,7 +214,7 @@ namespace hsrcore {
                 void delegate_loop();
 				void GenerateBitcoins(bool fGenerate, int nThreads);
 				void GenerateStakes();
-				float GetDiffculty(SignedBlockHeader& block_header);
+				float GetDiffculty(SignedBlockHeader& block_header,bool is_coinstake);
 				double GetPoSKernelPS();
 
                 void set_target_connections(uint32_t target);
@@ -283,6 +283,7 @@ namespace hsrcore {
                 std::unique_ptr<TeeDevice>                              _tee_device;
                 std::unique_ptr<TeeStream>                              _tee_stream;
                 bool                                                    _enable_ulog = false;
+				bool													_test_net = false;
 
                 fc::path                                                _data_dir;
 				

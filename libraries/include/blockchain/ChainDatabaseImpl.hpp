@@ -242,6 +242,7 @@ namespace hsrcore {
 				* @return void
 				*/
 				void                                        pay_miner(const BlockIdType& block_id,
+					const SignedBlockHeader& block_header,
 					const PublicKeyType& block_signee,
 					const PendingChainStatePtr& pending_state,
 					oBlockEntry& block_entry, bool is_coin_stake)const;
@@ -278,9 +279,11 @@ namespace hsrcore {
                 *
                 * @return void
                 */
-                void                                        update_random_seed(const SecretHashType& new_secret,
+                void                                        update_random_seed(const SignedBlockHeader& cur_block_header,
                     const PendingChainStatePtr& pending_state,
                     oBlockEntry& block_entry)const;
+				void                                        update_block_production_info(const SignedBlockHeader & block_header,
+					const PendingChainStatePtr& pending_state)const;
 				void update_block_modify(const SignedBlockHeader & block_header)const;
                 /**  save_undo_state
                 * Save current state and block_id into undo_state map
@@ -389,7 +392,7 @@ namespace hsrcore {
                 // contract related db
                 hsrcore::db::fast_level_map<ContractIdType, ContractEntry>                  _contract_id_to_entry;
                 hsrcore::db::fast_level_map<ContractIdType, ContractStorageEntry>               _contract_id_to_storage;
-                hsrcore::db::fast_level_map<ContractName, ContractIdType>                  _contract_name_to_id;
+                hsrcore::db::fast_level_map<ContractName, ContractIdEntry>                  _contract_name_to_id;
 				hsrcore::db::fast_level_map<TransactionIdType, ResultTIdEntry>		  _request_to_result_iddb;
 				hsrcore::db::fast_level_map<TransactionIdType, RequestIdEntry>		  _result_to_request_iddb;
 				hsrcore::db::fast_level_map<TransactionIdType, ContractinTrxEntry>		  _trx_to_contract_iddb;
@@ -397,6 +400,7 @@ namespace hsrcore {
                 // sandbox contract related
                 PendingChainStatePtr	_sandbox_pending_state = nullptr;
                 bool                    _is_in_sandbox = false;
+				bool					_test_net = false;
             };
 
         } // detail

@@ -23,7 +23,8 @@ namespace hsrcore {
         {
             hsr_address = 0,
             contract_address = 1,
-            script_id = 2
+            script_id = 2,
+			multisig_address = 3
         };
 
         struct WithdrawCondition;

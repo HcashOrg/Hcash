@@ -415,6 +415,7 @@ namespace hsrcore {
                 std::list<PotentialPeerEntry> _add_once_node_list; /// list of peers we want to connect to as soon as possible
 
                 PeerDatabase             _potential_peer_db;
+				bool					_is_test_net = false;;
                 hsrcore::db::LevelMap<std::string, fc::ip::endpoint> _black_list_db;
                 std::set<std::string>     _blocked_ips;
                 fc::promise<void>::ptr    _retrigger_connect_loop_promise;
@@ -697,6 +698,7 @@ namespace hsrcore {
 
                 // methods implementing node's public interface
                 void set_node_delegate(NodeDelegate* del, fc::thread* thread_for_delegate_calls);
+				void set_test_net(bool is_test_net);
                 void load_configuration(const fc::path& configuration_directory);
                 void listen_to_p2p_network();
                 void connect_to_p2p_network();
@@ -4191,6 +4193,12 @@ namespace hsrcore {
                     _chain_id = del->get_chain_id();
             }
 
+			void NodeImpl::set_test_net(bool is_test_net)
+			{
+				VERIFY_CORRECT_THREAD();
+				_is_test_net = is_test_net;
+			}
+
             void NodeImpl::load_configuration(const fc::path& configuration_directory)
             {
                 VERIFY_CORRECT_THREAD();
@@ -4225,12 +4233,13 @@ namespace hsrcore {
                 {
                     _node_configuration = detail::NodeConfiguration();
 
-#ifdef HSR_TEST_NETWORK
-                    //uint32_t port = HSR_NET_TEST_P2P_PORT + HSR_TEST_NETWORK_VERSION;
-                    uint32_t port = HSR_NET_TEST_P2P_PORT;
-#else
-                    uint32_t port = HSR_NET_DEFAULT_P2P_PORT;
-#endif
+					
+					uint32_t port = HSR_NET_DEFAULT_P2P_PORT;
+					if (_is_test_net)
+					{
+						port = HSR_NET_TEST_P2P_PORT;
+					}
+
                     _node_configuration.listen_endpoint.set_port(port);
                     _node_configuration.accept_incoming_connections = true;
                     _node_configuration.wait_if_endpoint_is_busy = false;
@@ -5040,6 +5049,10 @@ namespace hsrcore {
             fc::thread* delegate_thread = &fc::thread::current();
             INVOKE_IN_IMPL(set_node_delegate, del, delegate_thread);
         }
+		void Node::set_test_net(bool is_test_net)
+		{
+			INVOKE_IN_IMPL(set_test_net, is_test_net);
+		}
 
         void Node::load_configuration(const fc::path& configuration_directory)
         {

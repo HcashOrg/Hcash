@@ -290,6 +290,34 @@ TransactionBuilder& TransactionBuilder::deposit_asset_to_multisig(
         return *this;
     } FC_CAPTURE_AND_RETHROW((from_name)(addresses)(amount))
 }
+TransactionBuilder& TransactionBuilder::deposit_asset_to_multisig(
+	const Asset& amount,
+	const string& from_name,
+	uint32_t m,
+	const set<Address>& addresses)
+{
+	try {
+		if (amount.amount <= 0)
+			FC_THROW_EXCEPTION(invalid_asset_amount, "Cannot deposit a negative amount!");
+
+		auto payer = _wimpl->_wallet_db.lookup_account(from_name);
+		auto fee = _wimpl->self->get_transaction_fee();
+		FC_ASSERT(payer.valid(), "No such account");
+		MultisigMetaInfo info;
+		info.required = m;
+		info.owners = addresses;
+		trx.deposit_multisig(info, amount);
+
+		deduct_balance(payer->owner_key, amount + fee);
+
+		LedgerEntry entry;
+		entry.from_account = payer->owner_key;
+		entry.amount = amount;
+		transaction_entry.ledger_entries.push_back(std::move(entry));
+
+		return *this;
+	} FC_CAPTURE_AND_RETHROW((from_name)(addresses)(amount))
+}
 
 TransactionBuilder& TransactionBuilder::deposit_asset_with_escrow(const hsrcore::wallet::WalletAccountEntry& payer,
     const hsrcore::blockchain::AccountEntry& recipient,
@@ -478,7 +506,11 @@ TransactionBuilder& TransactionBuilder::finalize(const bool pay_fee, const VoteS
             trx.expiration = blockchain::now() + _wimpl->self->get_transaction_expiration();
 
         _wimpl->set_delegate_slate(trx, strategy);
-
+		if (memo_message != "")
+		{
+			trx.AddtionImessage(memo_message);
+			//AddtionImessage(memo_message);
+		}
         transaction_entry.entry_id = trx.id();
         transaction_entry.created_time = blockchain::now();
         transaction_entry.received_time = transaction_entry.created_time;

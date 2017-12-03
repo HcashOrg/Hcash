@@ -63,6 +63,9 @@ namespace hsrcore {
 						case contract_entry_type:
 							load_contract_entry(entry.as<WalletContractEntry>());
 							break;
+						case multisig_balance_id_type:
+							load_multisig_balance_entry(entry.as<WalletMultisigBalanceId>());
+							break;
 
                         default:
                             elog("Unknown wallet entry type: ${type}", ("type", entry.type));
@@ -125,6 +128,12 @@ namespace hsrcore {
 
 					//store id account map
 					self->id_to_entry_for_contract[contract_entry.id] = contract_entry;
+
+				}
+				void load_multisig_balance_entry(const WalletMultisigBalanceId &multisig_balance_entry)
+				{
+					//store contract entry map
+					self->id_to_multisig_balance_index.emplace(multisig_balance_entry);
 
 				}
 
@@ -246,7 +255,7 @@ namespace hsrcore {
 
             transactions.clear();
             id_to_transaction_entry_index.clear();
-
+			id_to_multisig_balance_index.clear();
             properties.clear();
             settings.clear();
 			
@@ -836,6 +845,65 @@ namespace hsrcore {
 			}FC_CAPTURE_AND_RETHROW((blockchain_contract_entry))
 			
 		}
+
+		oWalletMultisigBalanceId WalletDb::lookup_multisig_balance(const Address& multisig_balance_address)const
+		{
+			try {
+				FC_ASSERT(is_open(), "Wallet not open!");
+
+				const auto iter = id_to_multisig_balance_index.find(multisig_balance_address);
+				if (iter != id_to_multisig_balance_index.end()) return *iter;
+
+				return oWalletMultisigBalanceId();
+			} FC_CAPTURE_AND_RETHROW((multisig_balance_address))
+		}
+		set<WalletMultisigBalanceId> WalletDb::lookup_all_multisig_balance()
+		{
+			try {
+				FC_ASSERT(is_open(), "Wallet not open!");
+
+				return id_to_multisig_balance_index;
+			} FC_CAPTURE_AND_RETHROW()
+		}
+		WalletMultisigBalanceId  WalletDb::store_multisig_balance(const BalanceIdType& multisig_balance_id)
+		{
+			try
+			{
+				FC_ASSERT(is_open(), "Wallet not open!");
+				
+
+				oWalletMultisigBalanceId multisig_balance_entry = lookup_multisig_balance(multisig_balance_id);
+
+
+				if (multisig_balance_entry.valid())
+					return multisig_balance_id;
+
+				multisig_balance_entry = multisig_balance_id;
+
+				
+
+				store_and_reload_entry(*multisig_balance_entry);
+
+
+
+			}FC_CAPTURE_AND_RETHROW((multisig_balance_id))
+		}
+		oWalletMultisigBalanceId WalletDb::remove_multisig_balance(const Address& multisig_balance_address)
+		{
+			try {
+				FC_ASSERT(is_open(), "Wallet not open!");
+
+
+				oWalletMultisigBalanceId entry = lookup_multisig_balance(multisig_balance_address);
+				if (entry.valid())
+				{
+					id_to_multisig_balance_index.erase(multisig_balance_address);
+				}
+
+				return entry;
+			} FC_CAPTURE_AND_RETHROW((multisig_balance_address))
+		}
+
 
 		
 

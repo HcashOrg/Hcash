@@ -236,14 +236,14 @@ public:
     std::vector<std::string> contract_apis;
 };
 
-#define THINKYOUNG_API_NO_ERROR 0
-#define THINKYOUNG_API_SIMPLE_ERROR 1
-#define THINKYOUNG_API_MEMORY_ERROR 2
-#define THINKYOUNG_API_LVM_ERROR 3
-#define THINKYOUNG_API_PARSER_ERROR 4
-#define THINKYOUNG_API_COMPILE_ERROR 5
-#define THINKYOUNG_API_LVM_LIMIT_OVER_ERROR 6
-#define THINKYOUNG_API_THROW_ERROR 7   // glua代码中主动抛出的错误
+#define HSRCORE_API_NO_ERROR 0
+#define HSRCORE_API_SIMPLE_ERROR 1
+#define HSRCORE_API_MEMORY_ERROR 2
+#define HSRCORE_API_LVM_ERROR 3
+#define HSRCORE_API_PARSER_ERROR 4
+#define HSRCORE_API_COMPILE_ERROR 5
+#define HSRCORE_API_LVM_LIMIT_OVER_ERROR 6
+#define HSRCORE_API_THROW_ERROR 7   // glua代码中主动抛出的错误
 
 
 // storage structs
@@ -553,6 +553,7 @@ namespace hsrcore {
 
             virtual void emit(lua_State *L, const char* contract_id, const char* event_name, const char* event_param) = 0;
 			virtual bool is_valid_address(lua_State *L, const char *address_str) = 0;
+			virtual bool is_valid_contract_address(lua_State *L, const char *address_str) = 0;
 			virtual const char *get_system_asset_symbol(lua_State *L) = 0;
           };
 

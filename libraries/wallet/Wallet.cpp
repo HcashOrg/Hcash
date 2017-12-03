@@ -2049,7 +2049,7 @@ namespace hsrcore {
 				uint256 hashTarget = CBigNum().SetCompact(pblock.nbits).getuint256();
 
 				FC_ASSERT(hashProof <= hashTarget, "CheckWork() : proof-of-work not meeting target");
-
+				FC_ASSERT(pblock.is_coinstake == 0);
 				// Found a solution
 				{
 					auto aa = my->_blockchain->get_head_block().id();
@@ -2075,10 +2075,21 @@ namespace hsrcore {
 				if (NOT is_open()) FC_CAPTURE_AND_THROW(wallet_closed);
 				if (NOT is_unlocked()) FC_CAPTURE_AND_THROW(wallet_locked);
 
-
-				auto sign_account = my->_wallet_db.lookup_account(Address(header.coin_base));
-				if (!sign_account.valid())
-					FC_CAPTURE_AND_THROW(wallet_exception);
+				oWalletAccountEntry sign_account;
+				if (header.is_multisig_account)
+				{
+					auto balance_entry = my->_blockchain->get_balance_entry(header.coin_base);
+					sign_account = my->_wallet_db.lookup_account(*balance_entry->owners().begin());
+					if (!sign_account.valid())
+						FC_CAPTURE_AND_THROW(wallet_exception);
+				}
+				else
+				{
+					sign_account = my->_wallet_db.lookup_account(Address(header.coin_base));
+					if (!sign_account.valid())
+						FC_CAPTURE_AND_THROW(wallet_exception);
+				}
+				
 
 
 
@@ -2157,7 +2168,7 @@ namespace hsrcore {
             } FC_CAPTURE_AND_RETHROW()
         }
 
-        std::shared_ptr<TransactionBuilder> Wallet::create_transaction_builder_from_file(const string& old_builder_path)
+        std::shared_ptr<TransactionBuilder> Wallet::create_transaction_builder_from_file(const fc::path& old_builder_path)
         {
             try {
                 auto path = old_builder_path;
@@ -3338,7 +3349,7 @@ namespace hsrcore {
 			trans_entry.fee = fee;
 			trans_entry.trx = trx;
 			trans_entry.entry_id = trx.id();
-			trans_entry.trx_data = fc::raw::pack(trans_entry.trx);
+			trans_entry.trx_data = fc::raw::pack((Transaction)trans_entry.trx);
 			return trans_entry;
 		}
 
@@ -4155,7 +4166,7 @@ namespace hsrcore {
 				trans_entry.fee = required_fees + required_imessage_fee;
 				trans_entry.extra_addresses.push_back(to_address);
 				trans_entry.trx = trx;
-				trans_entry.trx_data = fc::raw::pack(trans_entry.trx);
+				trans_entry.trx_data = fc::raw::pack((Transaction)trans_entry.trx);
 				return trans_entry;
 			} FC_CAPTURE_AND_RETHROW((real_amount_to_transfer)(amount_to_transfer_symbol)(from_account_public_key)(to_address)(memo_message))
 		}
@@ -4301,7 +4312,7 @@ namespace hsrcore {
 				trans_entry.fee = required_fees;
 				trans_entry.extra_addresses.push_back(to_contract_address);
 				trans_entry.trx = trx;
-				trans_entry.trx_data = fc::raw::pack(trans_entry.trx);
+				trans_entry.trx_data = fc::raw::pack((Transaction)trans_entry.trx);
 				return trans_entry;
 			} FC_CAPTURE_AND_RETHROW((real_amount_to_transfer)(amount_to_transfer_symbol)(from_account_public_key_str)(to_contract_address))
 		}
@@ -4631,7 +4642,7 @@ namespace hsrcore {
 				trans_entry.fee = required_fees + margin_balance;
 				trans_entry.extra_addresses.push_back(contract_id);
 				trans_entry.trx = trx;
-				trans_entry.trx_data = fc::raw::pack(trans_entry.trx);
+				trans_entry.trx_data = fc::raw::pack((Transaction)trans_entry.trx);
 				return trans_entry;
 
 			} FC_CAPTURE_AND_RETHROW((contract_id)(upgrader_public_key_str)(new_contract_name)(new_contract_desc))
@@ -4878,7 +4889,7 @@ namespace hsrcore {
 				trans_entry.fee = required_fees;
 				trans_entry.extra_addresses.push_back(contract_id);
 				trans_entry.trx = trx;
-				trans_entry.trx_data = fc::raw::pack(trans_entry.trx);
+				trans_entry.trx_data = fc::raw::pack((Transaction)trans_entry.trx);
 				return trans_entry;
 
 			} FC_CAPTURE_AND_RETHROW((contract_id)(destroyer_public_key_str))
@@ -6321,11 +6332,88 @@ namespace hsrcore {
             return account_keys;
         }
 
+		variant_object Wallet::get_info_from_transaction_builder(const TransactionBuilder& builder)
+		{
+			auto multisig_object = fc::mutable_variant_object();
+			
+			//auto pretty_trx = to_pretty_trx(builder.transaction_entry.trx);
+			//auto temp_ledger = pretty_trx.ledger_entries.begin();
+			multisig_object["from_address"] = variant();
+			multisig_object["to_address"] = variant();
+			multisig_object["required"] = variant();
+			multisig_object["addresses"] = variant();
+			multisig_object["signed_addresses"] = variant();
+			for (const auto & op : builder.transaction_entry.trx.operations)
+			{	
+				switch (op.type)
+				{
+				case withdraw_op_type:
+				{
+					auto withdraw_op = op.as<WithdrawOperation>();
+					auto bal_rec = my->_blockchain->get_balance_entry(withdraw_op.balance_id);
 
+					if (bal_rec.valid() && !bal_rec->is_multisig_balance())
+					{
+						multisig_object["from_address"] = (string)(*(bal_rec->condition.owner()));
+					}
+					else if (bal_rec.valid() && bal_rec->is_multisig_balance())
+					{
+						multisig_object["from_address"] = (string)((withdraw_op.balance_id));
+					}
+					break;
+				}
+				case deposit_op_type:
+				{
+					auto deposit_op = op.as<DepositOperation>();
+					if (deposit_op.condition.type == withdraw_multisig_type)
+						multisig_object["to_address"] = (string)deposit_op.balance_id();
+					else
+						multisig_object["to_address"] = (string)(*(deposit_op.condition.owner()));
+					break;
+				}
+				default:
+					break;
+				}
+			}
+			if (multisig_object["from_address"].as_string() != "")
+			{
+				auto balance_entry = my->_blockchain->get_balance_entry((Address)multisig_object["from_address"].as_string());
+				if (balance_entry.valid())
+				{
+					auto temp_condition = balance_entry->condition.as<WithdrawWithMultisig>();
+					multisig_object["required"] = temp_condition.required;
+					multisig_object["addresses"] = temp_condition.owners;
+					const auto trx_digest = builder.transaction_entry.trx.digest(my->_blockchain->get_chain_id());
+					set<Address>                                   signed_keys;
+					set<Address>								   result_keys;
+					for (const auto& sig : builder.transaction_entry.trx.signatures)
+					{
+
+						const auto key = fc::ecc::public_key(sig, trx_digest, false).serialize();
+						signed_keys.insert(Address(key));
+						signed_keys.insert(Address(PtsAddress(key, false, 56)));
+						signed_keys.insert(Address(PtsAddress(key, true, 56)));
+						signed_keys.insert(Address(PtsAddress(key, false, 0)));
+						signed_keys.insert(Address(PtsAddress(key, true, 0)));
+					}
+					for (auto addr : temp_condition.owners)
+					{
+						if (signed_keys.count(addr))
+						{
+							result_keys.emplace(addr);
+						}
+					}
+					multisig_object["signed_addresses"] = result_keys;
+				}
+			}
+				
+			return multisig_object;
+		}
 
         void Wallet::write_latest_builder(const TransactionBuilder& builder,
-            const string& alternate_path)
+            const std::string& alternate_path)
         {
+
             std::ofstream fs;
             if (alternate_path == "")
             {
@@ -6337,9 +6425,23 @@ namespace hsrcore {
             }
             else
             {
-                if (fc::exists(alternate_path))
-                    FC_THROW_EXCEPTION(file_already_exists, "That filename already exists!", ("filename", alternate_path));
-                fs.open(alternate_path);
+				std::string temp_path = alternate_path;
+				if (fc::exists(alternate_path))
+				{
+					fc::time_point_sec now = fc::time_point::now();
+					
+					auto pos = temp_path.find_last_of(".");
+					if (pos != -1)
+					{
+						temp_path = temp_path.substr(0,pos)+ now.to_non_delimited_iso_string() + temp_path.substr(pos,temp_path.size() );
+					}
+					else
+					{
+						temp_path += now.to_non_delimited_iso_string();
+					}
+						
+				}
+                fs.open(temp_path);
             }
             fs << fc::json::to_pretty_string(builder);
             fs.close();
@@ -6442,6 +6544,44 @@ namespace hsrcore {
                 return my->_wallet_db.remove_contact(label);
             } FC_CAPTURE_AND_RETHROW((label))
         }
+
+
+		oWalletMultisigBalanceId Wallet::get_multisig(const Address& multisig_address)const
+		{
+			try {
+				if (!is_open()) FC_CAPTURE_AND_THROW(wallet_closed);
+				if (!is_unlocked()) FC_CAPTURE_AND_THROW(wallet_locked);
+				return my->_wallet_db.lookup_multisig_balance(multisig_address);
+			} FC_CAPTURE_AND_RETHROW((multisig_address))
+		}
+
+		set<WalletMultisigBalanceId> Wallet::get_all_multisig()
+		{
+			try {
+				if (!is_open()) FC_CAPTURE_AND_THROW(wallet_closed);
+				if (!is_unlocked()) FC_CAPTURE_AND_THROW(wallet_locked);
+				return my->_wallet_db.lookup_all_multisig_balance();
+			} FC_CAPTURE_AND_RETHROW()
+		}
+
+		WalletMultisigBalanceId Wallet::add_multisig(const BalanceIdType& multisig)
+		{
+			try {
+				if (!is_open()) FC_CAPTURE_AND_THROW(wallet_closed);
+				if (!is_unlocked()) FC_CAPTURE_AND_THROW(wallet_locked);
+				return my->_wallet_db.store_multisig_balance(multisig);
+			} FC_CAPTURE_AND_RETHROW((multisig))
+		}
+
+		oWalletMultisigBalanceId Wallet::remove_multisig(const Address& multisig_address)
+		{
+			try {
+				if (!is_open()) FC_CAPTURE_AND_THROW(wallet_closed);
+				if (!is_unlocked()) FC_CAPTURE_AND_THROW(wallet_locked);
+				return my->_wallet_db.remove_multisig_balance(multisig_address);
+			} FC_CAPTURE_AND_RETHROW((multisig_address))
+		}
+
 
         void Wallet::import_script_db(const fc::path& src_path)
         {

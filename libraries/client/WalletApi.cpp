@@ -333,24 +333,24 @@ namespace hsrcore {
                 return _wallet->check_passphrase(passphrase);
             }
 
-            bool detail::ClientImpl::wallet_check_address(const std::string& address)
+            bool detail::ClientImpl::wallet_check_address(const std::string& address,int8_t address_type)
             {
                 // set limit in  sandbox state
                 if (_chain_db->get_is_in_sandbox())
                     FC_THROW_EXCEPTION(sandbox_command_forbidden, "in sandbox, this command is forbidden, you cannot call it!");
 
-                size_t first = address.find_first_of("HSR");
-                if (first != std::string::npos&&first == 0)
-                {
-                    string strToAccount;
-                    string strSubAccount;
-                    _wallet->accountsplit(address, strToAccount, strSubAccount);
-                    return Address::is_valid(strToAccount);
-                }
-                else
-                {
-                    return _wallet->is_valid_account_name(address);
-                }
+				if (address_type ==0)
+				{
+					string strToAccount;
+					string strSubAccount;
+					_wallet->accountsplit(address, strToAccount, strSubAccount);
+					return Address::is_valid(strToAccount);
+					
+				}
+				else
+				{
+					return _wallet->is_valid_account_name(address);
+				}
             }
 
             map<TransactionIdType, fc::exception> detail::ClientImpl::wallet_get_pending_transaction_errors(const hsrcore::blockchain::FilePath& filename)const
@@ -651,59 +651,7 @@ namespace hsrcore {
 				return true;
 			}
 
-            // wallet_transaction_entry detail::ClientImpl::wallet_transfer_from(
-            //         const string& amount_to_transfer,
-            //         const string& asset_symbol,
-            //         const string& paying_account_name,
-            //         const string& from_account_name,
-            // 		const string& to_account_name,
-            //         const string& memo_message,
-            //         const vote_strategy& strategy )
-            // {
-            //     asset amount = _chain_db->to_ugly_asset(amount_to_transfer, asset_symbol);
-            //     auto payer = _wallet->get_account(paying_account_name);
-            //     auto recipient = _wallet->get_account(to_account_name);
-            //     transaction_builder_ptr builder = _wallet->create_transaction_builder();
-            //     auto entry = builder->deposit_asset(payer, recipient, amount,
-            //                                          memo_message, from_account_name)
-            //                           .finalize( true, strategy )
-            //                           .sign();
-            //     _wallet->cache_transaction( entry );
-            //     network_broadcast_transaction( entry.trx );
-            //     /*for( auto&& notice : builder->encrypted_notifications() )
-            //         _mail_client->send_encrypted_message(std::move(notice),
-            //                                              from_account_name,
-            //                                              to_account_name,
-            //                                              recipient.owner_key);*/
-            // 
-            //     return entry;
-            // }
-            // 
-            // balance_id_type detail::ClientImpl::wallet_multisig_get_balance_id(
-            //                                         const string& asset_symbol,
-            //                                         uint32_t m,
-            //                                         const vector<address>& addresses )const
-            // {
-            //     auto id = _chain_db->get_asset_id( asset_symbol );
-            //     return balance_entry::get_multisig_balance_id( id, m, addresses );
-            // }
-            // 
-            // wallet_transaction_entry detail::ClientImpl::wallet_multisig_deposit(
-            //                                                     const string& amount,
-            //                                                     const string& symbol,
-            //                                                     const string& from_name,
-            //                                                     uint32_t m,
-            //                                                     const vector<address>& addresses,
-            //                                                     const vote_strategy& strategy )
-            // {
-            //     asset ugly_asset = _chain_db->to_ugly_asset(amount, symbol);
-            //     auto builder = _wallet->create_transaction_builder();
-            //     builder->deposit_asset_to_multisig( ugly_asset, from_name, m, addresses );
-            //     auto entry = builder->finalize( true, strategy ).sign();
-            //     _wallet->cache_transaction( entry );
-            //     network_broadcast_transaction( entry.trx );
-            //     return entry;
-            // }
+            
 
             TransactionBuilder detail::ClientImpl::wallet_withdraw_from_address(
                 const string& amount,
@@ -741,177 +689,7 @@ namespace hsrcore {
                 return *builder;
             }
 
-            // transaction_builder detail::ClientImpl::wallet_withdraw_from_legacy_address(
-            //                                                     const string& amount,
-            //                                                     const string& symbol,
-            //                                                     const pts_address& from_address,
-            //                                                     const string& to,
-            //                                                     const vote_strategy& strategy,
-            //                                                     bool sign,
-            //                                                     const string& builder_path )const
-            // {
-            //     address to_address;
-            //     try {
-            //         auto acct = _wallet->get_account( to );
-            //         to_address = acct.owner_address();
-            //     } catch (...) {
-            //         to_address = address( to );
-            //     }
-            //     asset ugly_asset = _chain_db->to_ugly_asset(amount, symbol);
-            //     auto builder = _wallet->create_transaction_builder();
-            //     auto fee = _wallet->get_transaction_fee();
-            //     builder->withdraw_from_balance( from_address, ugly_asset.amount + fee.amount );
-            //     builder->deposit_to_balance( to_address, ugly_asset );
-            //     builder->finalize( false, strategy );
-            //     if( sign )
-            //         builder->sign();
-            //     _wallet->write_latest_builder( *builder, builder_path );
-            //     return *builder;
-            // }
-            // 
-            // transaction_builder detail::ClientImpl::wallet_multisig_withdraw_start(
-            //                                                     const string& amount,
-            //                                                     const string& symbol,
-            //                                                     const balance_id_type& from,
-            //                                                     const address& to_address,
-            //                                                     const vote_strategy& strategy,
-            //                                                     const string& builder_path )const
-            // {
-            //     asset ugly_asset = _chain_db->to_ugly_asset(amount, symbol);
-            //     auto builder = _wallet->create_transaction_builder();
-            //     auto fee = _wallet->get_transaction_fee();
-            //     builder->withdraw_from_balance( from, ugly_asset.amount + fee.amount );
-            //     builder->deposit_to_balance( to_address, ugly_asset );
-            //     _wallet->write_latest_builder( *builder, builder_path );
-            //     return *builder;
-            // }
-            // 
-            // transaction_builder detail::ClientImpl::wallet_builder_add_signature(
-            //                                             const transaction_builder& builder,
-            //                                             bool broadcast )
-            // { try {
-            //     auto new_builder = _wallet->create_transaction_builder( builder );
-            //     if( new_builder->transaction_entry.trx.signatures.empty() )
-            //         new_builder->finalize( false );
-            //     new_builder->sign();
-            //     if( broadcast )
-            //     {
-            //         try {
-            //             network_broadcast_transaction( new_builder->transaction_entry.trx );
-            //         }
-            //         catch(...) {
-            //             ulog("I tried to broadcast the transaction but it was not valid.");
-            //         }
-            //     }
-            //     _wallet->write_latest_builder( *new_builder, "" );
-            //     return *new_builder;
-            // } FC_CAPTURE_AND_RETHROW( (builder)(broadcast) ) }
-            // 
-            // transaction_builder detail::ClientImpl::wallet_builder_file_add_signature(
-            //                                             const string& builder_path,
-            //                                             bool broadcast )
-            // { try {
-            //     auto new_builder = _wallet->create_transaction_builder_from_file( builder_path );
-            //     if( new_builder->transaction_entry.trx.signatures.empty() )
-            //         new_builder->finalize( false );
-            //     new_builder->sign();
-            //     if( broadcast )
-            //     {
-            //         try {
-            //             network_broadcast_transaction( new_builder->transaction_entry.trx );
-            //         }
-            //         catch(...) {
-            //             ulog("I tried to broadcast the transaction but it was not valid.");
-            //         }
-            //     }
-            //     _wallet->write_latest_builder( *new_builder, builder_path );
-            //     _wallet->write_latest_builder( *new_builder, "" ); // always write to "latest"
-            //     return *new_builder;
-            // } FC_CAPTURE_AND_RETHROW( (broadcast)(builder_path) ) }
-            // 
-            // wallet_transaction_entry detail::ClientImpl::wallet_release_escrow( const string& paying_account_name,
-            //                                                                       const address& escrow_balance_id,
-            //                                                                       const string& released_by,
-            //                                                                       double amount_to_sender,
-            //                                                                       double amount_to_receiver )
-            // {
-            //     auto payer = _wallet->get_account(paying_account_name);
-            //     auto balance_rec = _chain_db->get_balance_entry( escrow_balance_id );
-            //     FC_ASSERT( balance_rec.valid() );
-            //     FC_ASSERT( balance_rec->condition.type == withdraw_escrow_type );
-            //     FC_ASSERT( released_by == "sender" ||
-            //                released_by == "receiver" ||
-            //                released_by == "agent" );
-            // 
-            //     auto asset_rec = _chain_db->get_asset_entry( balance_rec->asset_id() );
-            //     FC_ASSERT( asset_rec.valid() );
-            //     if( asset_rec->precision )
-            //     {
-            //        amount_to_sender   *= asset_rec->precision;
-            //        amount_to_receiver *= asset_rec->precision;
-            //     }
-            // 
-            //     auto escrow_cond = balance_rec->condition.as<withdraw_with_escrow>();
-            //     address release_by_address;
-            // 
-            //     if( released_by == "sender" ) release_by_address = escrow_cond.sender;
-            //     if( released_by == "receiver" ) release_by_address = escrow_cond.receiver;
-            //     if( released_by == "agent" ) release_by_address = escrow_cond.escrow;
-            // 
-            //     transaction_builder_ptr builder = _wallet->create_transaction_builder();
-            //     auto entry = builder->release_escrow( payer, escrow_balance_id, release_by_address, amount_to_sender, amount_to_receiver )
-            //   //  TODO: restore this function       .finalize()
-            //                                         .sign();
-            // 
-            //     _wallet->cache_transaction( entry );
-            //     network_broadcast_transaction( entry.trx );
-            // 
-            //     /* TODO: notify other parties of the transaction.
-            //     for( auto&& notice : builder->encrypted_notifications() )
-            //         _mail_client->send_encrypted_message(std::move(notice),
-            //                                              from_account_name,
-            //                                              to_account_name,
-            //                                              recipient.owner_key);
-            // 
-            //     */
-            //     return entry;
-            // }
-            // 
-            // wallet_transaction_entry detail::ClientImpl::wallet_transfer_from_with_escrow(
-            //         const string& amount_to_transfer,
-            //         const string& asset_symbol,
-            //         const string& paying_account_name,
-            //         const string& from_account_name,
-            // 		const string& to_account_name,
-            //         const string& escrow_account_name,
-            //         const digest_type&   agreement,
-            //         const string& memo_message,
-            //         const vote_strategy& strategy )
-            // {
-            //     asset amount = _chain_db->to_ugly_asset(amount_to_transfer, asset_symbol);
-            //     auto sender = _wallet->get_account(from_account_name);
-            //     auto payer = _wallet->get_account(paying_account_name);
-            //     auto recipient = _wallet->get_account(to_account_name);
-            //     auto escrow_account = _wallet->get_account(escrow_account_name);
-            //     transaction_builder_ptr builder = _wallet->create_transaction_builder();
-            // 
-            //     auto entry = builder->deposit_asset_with_escrow(payer, recipient, escrow_account, agreement,
-            //                                                      amount,memo_message, sender.owner_key)
-            //                           .finalize( true, strategy )
-            //                           .sign();
-            //     _wallet->cache_transaction( entry );
-            //     network_broadcast_transaction( entry.trx );
-            // 	/*
-            //     for( auto&& notice : builder->encrypted_notifications() )
-            //         _mail_client->send_encrypted_message(std::move(notice),
-            //                                              from_account_name,
-            //                                              to_account_name,
-            //                                              recipient.owner_key);
-            // 											 */
-            // 
-            //     return entry;
-            // }
-
+   
             WalletTransactionEntry detail::ClientImpl::wallet_asset_create(
                 const string& symbol,
                 const string& asset_name,
@@ -1202,7 +980,7 @@ namespace hsrcore {
                 return account_entry->name;
             }
 
-			bool detail::ClientImpl::wallet_import_hshare_private_key(const std::string& acc_name, const fc::path& infile)
+			bool detail::ClientImpl::wallet_import_hshare_private_key(const std::string& acc_name, const FilePath & infile)
             {
 				// set limit in  sandbox state
 				if (_chain_db->get_is_in_sandbox())
@@ -1210,7 +988,7 @@ namespace hsrcore {
 
 				std::vector<std::string> vwif;
 				vwif.clear();
-				hshare::getUnencryptKeys(vwif, infile.string());
+				hshare::getUnencryptKeys(vwif, infile);
 
 				int index = -1;
 				for (auto wif : vwif)
@@ -1232,7 +1010,7 @@ namespace hsrcore {
             }
 
 
-			bool detail::ClientImpl::wallet_import_hshare_encrypted_private_key(const std::string& passwd, const std::string& acc_name, const fc::path& infile)
+			bool detail::ClientImpl::wallet_import_hshare_encrypted_private_key(const std::string& passwd, const std::string& acc_name, const FilePath& infile)
             {
 				// set limit in  sandbox state
 				if (_chain_db->get_is_in_sandbox())
@@ -1241,7 +1019,7 @@ namespace hsrcore {
 				std::vector<std::string> vwif;
 				vwif.clear();
 
-				hshare::getEncryptKeys(vwif, passwd, infile.string());
+				hshare::getEncryptKeys(vwif, passwd, infile);
 
 				int index = -1;
 				for (auto wif : vwif)
@@ -1375,6 +1153,91 @@ namespace hsrcore {
 
 			}
 
+
+			TransactionBuilder detail::ClientImpl::wallet_multisig_withdraw_start(
+				const string& amount,
+				const string& symbol,
+				const Address& from,
+				const Address& to_address,
+				const Imessage& memo_message,
+				const FilePath& builder_path)
+			{
+				Asset ugly_asset = _chain_db->to_ugly_asset(amount, symbol);
+				auto builder = _wallet->create_transaction_builder();
+				auto fee = _wallet->get_transaction_fee();
+				builder->withdraw_from_balance(from, ugly_asset.amount + fee.amount);
+				builder->deposit_to_balance(to_address, ugly_asset);
+				builder->memo_message = memo_message;
+				_wallet->write_latest_builder(*builder, builder_path);
+				return *builder;
+			}
+
+			TransactionBuilder detail::ClientImpl::wallet_builder_add_signature(
+				const TransactionBuilder& builder,
+				bool broadcast)
+			{
+				try {
+					auto new_builder = _wallet->create_transaction_builder(builder);
+					if (new_builder->transaction_entry.trx.signatures.empty())
+						new_builder->finalize(false);
+					new_builder->sign();
+					if (broadcast)
+					{
+						try {
+							network_broadcast_transaction(new_builder->transaction_entry.trx);
+						}
+						catch (...) {
+							ulog("I tried to broadcast the transaction but it was not valid.");
+						}
+					}
+					_wallet->write_latest_builder(*new_builder, "");
+					return *new_builder;
+				} FC_CAPTURE_AND_RETHROW((builder)(broadcast))
+			}
+
+			fc::variant_object detail::ClientImpl::wallet_builder_get_multisig_detail(const hsrcore::wallet::TransactionBuilder& transaction_builder) const
+			{
+				try {
+					auto new_builder = _wallet->create_transaction_builder(transaction_builder);
+
+					return _wallet->get_info_from_transaction_builder(*new_builder);
+				} FC_CAPTURE_AND_RETHROW((transaction_builder))
+			}
+			fc::variant_object detail::ClientImpl::wallet_builder_file_get_multisig_detail(const hsrcore::blockchain::FilePath& builder_path) const
+			{
+				try {
+					auto new_builder = _wallet->create_transaction_builder_from_file(builder_path);
+
+					return _wallet->get_info_from_transaction_builder(*new_builder);
+				} FC_CAPTURE_AND_RETHROW((builder_path))
+			}
+
+
+
+			TransactionBuilder detail::ClientImpl::wallet_builder_file_add_signature(
+				const FilePath& builder_path,
+				bool broadcast)
+			{
+				try {
+					auto new_builder = _wallet->create_transaction_builder_from_file(builder_path);
+					if (new_builder->transaction_entry.trx.signatures.empty())
+						new_builder->finalize(false);
+					new_builder->sign();
+					if (broadcast)
+					{
+						try {
+							network_broadcast_transaction(new_builder->transaction_entry.trx);
+						}
+						catch (...) {
+							ulog("I tried to broadcast the transaction but it was not valid.");
+						}
+					}
+					_wallet->write_latest_builder(*new_builder, builder_path);
+					_wallet->write_latest_builder(*new_builder, ""); // always write to "latest"
+					return *new_builder;
+				} FC_CAPTURE_AND_RETHROW((broadcast)(builder_path))
+			}
+
 			void ClientImpl::wallet_scan_contracts()
 			{
 				try
@@ -1383,6 +1246,129 @@ namespace hsrcore {
 
 				}FC_CAPTURE_AND_RETHROW()
 			}
+
+			fc::variant_object detail::ClientImpl::wallet_import_multisig_account(
+				const hsrcore::blockchain::Address& multisig_address)
+			{
+
+				auto entry = _chain_db->get_balance_entry(multisig_address);
+				auto multisig_info = fc::mutable_variant_object();
+				if (entry.valid())
+				{
+					auto multisig =  entry->condition.as<WithdrawWithMultisig>();
+					if (multisig.type != WithdrawConditionTypes::withdraw_multisig_type)
+					{
+						multisig_info["result"] = false;
+						multisig_info["reason"] = "address is not validate multisig address!";
+					}
+					else
+					{
+						_wallet->add_multisig(multisig_address);
+						multisig_info["result"] = true;
+						multisig_info["reason"] = "";
+						multisig_info["requires"] = multisig.required;
+						multisig_info["owners"] = multisig.owners;
+					}
+					
+				}
+				else
+				{
+					multisig_info["result"] = false;
+					multisig_info["reason"] = "This multisig account does not exist!";
+				}
+				return multisig_info;
+			}
+			Address detail::ClientImpl::wallet_import_multisig_account_by_detail(
+				const string& asset_symbol,
+				uint32_t m,
+				const vector<hsrcore::blockchain::Address>& addresses)
+			{
+				auto id = _chain_db->get_asset_id(asset_symbol);
+				BalanceIdType balance_id = BalanceEntry::get_multisig_balance_id(id, m, addresses);
+				auto entry = _chain_db->get_balance_entry(balance_id);
+				if (entry.valid())
+				{
+					_wallet->add_multisig(balance_id);
+				}
+				return balance_id;
+			}
+
+			WalletTransactionEntry detail::ClientImpl::wallet_multisig_deposit(
+				const string& amount,
+				const string& symbol,
+				const string& from_name,
+				const std::string& to_account,
+				const Imessage& memo_message)
+			{
+				Asset ugly_asset = _chain_db->to_ugly_asset(amount, symbol);
+				auto builder = _wallet->create_transaction_builder();
+				auto balance_entry = _chain_db->get_balance_entry(Address(to_account));
+				if (!balance_entry.valid() || balance_entry->condition.type != WithdrawConditionTypes::withdraw_multisig_type)
+					FC_THROW_EXCEPTION(multisig_account_does_not_exist_type,(to_account));
+				auto multisig = balance_entry->condition.as<WithdrawWithMultisig>();
+				builder->deposit_asset_to_multisig(ugly_asset, from_name, multisig.required, multisig.owners);
+				builder->memo_message = memo_message;
+				auto record = builder->finalize(true).sign();
+				_wallet->cache_transaction(record);
+				network_broadcast_transaction(record.trx);
+				return record;
+			}
+
+			std::pair<std::string, hsrcore::wallet::WalletTransactionEntry> detail::ClientImpl::wallet_create_multisig_account(
+				const string& amount,
+				const string& symbol,
+				const string& from_name,
+				uint32_t m, 
+				const std::vector<hsrcore::blockchain::Address>& addresses,
+				const Imessage& memo_message)
+			{
+				Asset ugly_asset = _chain_db->to_ugly_asset(amount, symbol);
+				auto builder = _wallet->create_transaction_builder();
+				builder->deposit_asset_to_multisig(ugly_asset, from_name, m, addresses);
+				builder->memo_message = memo_message;
+				auto record = builder->finalize(true).sign();
+				auto id = _chain_db->get_asset_id(symbol);
+				BalanceIdType balance_id = BalanceEntry::get_multisig_balance_id(id, m, addresses);
+				_wallet->add_multisig(balance_id);
+				_wallet->cache_transaction(record);
+				network_broadcast_transaction(record.trx);
+				
+				
+				
+				return std::make_pair((string)balance_id,record);
+			}
+
+			std::vector<hsrcore::wallet::PrettyTransaction> detail::ClientImpl::wallet_multisig_account_history(const std::string& account_address, const std::string& asset_symbol , int32_t limit , uint32_t start_block_num , uint32_t end_block_num ) const
+			{
+				try {
+					Address multisig_address(account_address);
+					if (multisig_address.judge_addr_type(account_address) != AddressType::multisig_address)
+						return std::vector<hsrcore::wallet::PrettyTransaction>();
+
+					auto history = _wallet->get_pretty_transaction_history(account_address, 0, -1, asset_symbol);
+					for (auto& prettytrx : history) {
+						for (auto& prettyledgerentry : prettytrx.ledger_entries) {
+							prettyledgerentry.running_balances.clear();
+						}
+					}
+					if (limit == 0 || abs(limit) >= history.size())
+					{
+						return history;
+					}
+					else if (limit > 0)
+					{
+						return vector<PrettyTransaction>(history.begin(), history.begin() + limit);
+					}
+					else
+					{
+						return vector<PrettyTransaction>(history.end() - abs(limit), history.end());
+					}
+				} FC_RETHROW_EXCEPTIONS(warn, "")
+			}
+
+			
+					
+
 
             WalletTransactionEntry ClientImpl::wallet_scan_transaction(const string& transaction_id, bool overwrite_existing)
             {
@@ -1546,6 +1532,52 @@ namespace hsrcore {
                     return _wallet->get_spendable_account_balances(account_name);
                 } FC_CAPTURE_AND_RETHROW((account_name))
             }
+			
+			AccountBalanceSummaryType ClientImpl::wallet_multisig_account_balance(const std::string& account_address ) const
+			{
+				// set limit in  sandbox state
+				if (_chain_db->get_is_in_sandbox())
+					FC_THROW_EXCEPTION(sandbox_command_forbidden, "in sandbox, this command is forbidden, you cannot call it!");
+
+				try {
+					
+					map<string, map<AssetIdType, ShareType>> balances;
+					if (account_address == "")
+					{
+						auto address_list = _wallet->get_all_multisig();
+						for (auto iter = address_list.begin();iter!= address_list.end();++iter)
+						{
+							auto balance_entry = _chain_db->get_balance_entry((Address)*iter);
+							if (balance_entry.valid())
+							{
+								const time_point_sec now = _chain_db->get_pending_state()->now();
+
+								const string& name = (string)*iter;
+
+								const Asset balance = balance_entry->get_spendable_balance(now);
+								balances[name][balance.asset_id] += balance.amount;
+							}
+						}
+
+					}
+					else
+					{
+						auto balance_entry = _chain_db->get_balance_entry((Address)account_address);
+						if (balance_entry.valid())
+						{
+							const time_point_sec now = _chain_db->get_pending_state()->now();
+
+							const string& name = account_address;
+
+							const Asset balance = balance_entry->get_spendable_balance(now);
+							balances[name][balance.asset_id] += balance.amount;
+						}
+					}
+
+					return balances;
+				} FC_CAPTURE_AND_RETHROW((account_address))
+			}
+
 
             AccountBalanceIdSummaryType ClientImpl::wallet_account_balance_ids(const string& account_name)const
             {

@@ -64,6 +64,7 @@ namespace hsrcore {
 			apply_entrys(prev_state, _result_id_to_request_id, _res_to_req_to_remove);
 			apply_entrys(prev_state, _trx_to_contract_id, _trx_to_contract_id_remove);
 			apply_entrys(prev_state, _contract_to_trx_id, _contract_to_trx_id_remove);
+			apply_entrys(prev_state, _contract_name_to_id, _contract_name_to_id_remove);
             /** do this last because it could have side effects on other entrys while
              * we manage the short index
              */
@@ -164,6 +165,7 @@ namespace hsrcore {
 			populate_undo_state(undo_state, prev_state, _result_id_to_request_id, _res_to_req_to_remove);
 			populate_undo_state(undo_state, prev_state, _trx_to_contract_id,_trx_to_contract_id_remove);
 			populate_undo_state(undo_state, prev_state, _contract_to_trx_id, _contract_to_trx_id_remove);
+			populate_undo_state(undo_state, prev_state, _contract_name_to_id, _contract_name_to_id_remove);
         }
 
         /** load the state from a variant */
@@ -451,13 +453,22 @@ namespace hsrcore {
         oContractEntry  PendingChainState::contract_lookup_by_name(const ContractName& name)const
         {
             const auto iter = _contract_name_to_id.find(name);
-            if (iter != _contract_name_to_id.end()) return contract_lookup_by_id(iter->second);
+            if (iter != _contract_name_to_id.end()) return contract_lookup_by_id(iter->second.id);
             const ChainInterfacePtr prev_state = _prev_state.lock();
             if (!prev_state) return oContractEntry();
             const oContractEntry entry = prev_state->lookup<ContractEntry>(name);
             if (entry.valid() && _contract_id_remove.count(entry->id) == 0) return *entry;
             return oContractEntry();
         }
+		oContractIdEntry PendingChainState::contractid_lookup_by_name(const ContractName& name)const
+		{
+			const auto iter = _contract_name_to_id.find(name);
+			if (iter != _contract_name_to_id.end()) return  iter->second;
+			if (_contract_name_to_id_remove.count(name) > 0) return oContractIdEntry();
+			const ChainInterfacePtr prev_state = _prev_state.lock();
+			if (!prev_state) return oContractIdEntry();
+			return prev_state->lookup<ContractIdEntry>(name);
+		}
 
         oContractStorage PendingChainState::contractstorage_lookup_by_id(const ContractIdType& id)const
         {
@@ -465,7 +476,7 @@ namespace hsrcore {
             if (iter != _contract_id_to_storage.end()) return iter->second;
             const ChainInterfacePtr prev_state = _prev_state.lock();
             if (!prev_state) return oContractStorage();
-            const oContractStorage entry = prev_state->lookup<ContractStorageEntry>(id);
+            oContractStorage entry = prev_state->lookup<ContractStorageEntry>(id);
             if (entry.valid() && _contract_id_remove.count(id) == 0) return entry;
             return oContractStorage();
         }
@@ -476,10 +487,11 @@ namespace hsrcore {
             _contract_id_to_entry[id] = entry;
         }
 
-        void PendingChainState::contract_insert_into_name_map(const ContractName& name, const ContractIdType& id)
+        void PendingChainState::contractname_insert_into_id_map(const ContractName& name, const ContractIdEntry& id)
         {
             //_contract_id_remove.erase(id);
             _contract_name_to_id[name] = id;
+			_contract_name_to_id_remove.erase(name);
         }
 
         void PendingChainState::contractstorage_insert_into_id_map(const ContractIdType& id, const ContractStorageEntry& storage)
@@ -494,10 +506,11 @@ namespace hsrcore {
             _contract_id_remove.insert(id);
         }
 
-        void PendingChainState::contract_erase_from_name_map(const ContractName& name)
+        void PendingChainState::contractname_erase_from_id_map(const ContractName& name)
         {
             // ContractIdType id = _contract_name_to_id[name];
             _contract_name_to_id.erase(name);
+			_contract_name_to_id_remove.insert(name);
             //_contract_id_remove.insert(id);
         }
 		oResultTIdEntry PendingChainState::contract_lookup_resultid_by_reqestid(const TransactionIdType& req) const

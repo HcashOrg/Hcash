@@ -22,12 +22,12 @@ namespace glua
 {
 	namespace lib
 	{
-		// int thinkyounglib_get_storage(lua_State *L);
-		// thinkyoung.get_storage具体的实现
+		// int HSRCORElib_get_storage(lua_State *L);
+		// HSRCORE.get_storage具体的实现
 		int hsrcorelib_get_storage_impl(lua_State *L,
 			const char *contract_id, const char *name);
 
-		// int thinkyounglib_set_storage(lua_State *L);
+		// int HSRCORElib_set_storage(lua_State *L);
 
         int hsrcorelib_set_storage_impl(lua_State *L,
           const char *contract_id, const char *name, int value_index);

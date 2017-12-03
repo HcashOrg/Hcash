@@ -33,8 +33,8 @@ namespace hsrcore {
 		{
 			auto rec = fc::raw::pack(*this);
 			//return HashX14(rec.begin(),rec.end());
-			
-			return HashR14(rec.begin(), rec.end()-8);
+			memset(&rec[140],0,sizeof(uint64_t)*2);
+			return HashR14(rec.begin(), rec.end());
 		}
 
 

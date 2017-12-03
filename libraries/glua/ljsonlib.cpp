@@ -110,7 +110,7 @@ static GluaStorageValue tokens_to_lua_value(lua_State *L, GluaTokenParser *token
             }
             else
             {
-                global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "parse json error(unknown symbol name %s)", token_str.c_str());
+                global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "parse json error(unknown symbol name %s)", token_str.c_str());
                 if (nullptr != result)
                     *result = false;
                 return nil_storage_value();
@@ -132,7 +132,7 @@ static GluaStorageValue tokens_to_lua_value(lua_State *L, GluaTokenParser *token
             return value;
         } break;
         default:
-            global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
+            global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
             if (nullptr != result)
                 *result = false;
             return nil_storage_value();
@@ -146,7 +146,7 @@ static GluaStorageValue tokens_to_lua_value(lua_State *L, GluaTokenParser *token
     {
         if (token_parser->eof())
         {
-            global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
+            global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
             if (nullptr != result)
                 *result = false;
             return nil_storage_value();
@@ -170,7 +170,7 @@ static GluaStorageValue tokens_to_lua_value(lua_State *L, GluaTokenParser *token
         {
             if (token_parser->eof())
             {
-                global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
+                global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
                 if (nullptr != result)
                     *result = false;
                 return nil_storage_value();
@@ -179,7 +179,7 @@ static GluaStorageValue tokens_to_lua_value(lua_State *L, GluaTokenParser *token
             token_parser->next();
             if (token.type != TOKEN_RESERVED::LTK_STRING)
             {
-                global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
+                global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
                 if (nullptr != result)
                     *result = false;
                 return nil_storage_value();
@@ -187,7 +187,7 @@ static GluaStorageValue tokens_to_lua_value(lua_State *L, GluaTokenParser *token
             auto prop_key = token.token;
             if (token_parser->eof())
             {
-                global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
+                global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
                 if (nullptr != result)
                     *result = false;
                 return nil_storage_value();
@@ -196,14 +196,14 @@ static GluaStorageValue tokens_to_lua_value(lua_State *L, GluaTokenParser *token
             token_parser->next();
             if (token.type != ':')
             {
-                global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
+                global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
                 if (nullptr != result)
                     *result = false;
                 return nil_storage_value();
             }
             if (token_parser->eof())
             {
-                global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
+                global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
                 if (nullptr != result)
                     *result = false;
                 return nil_storage_value();
@@ -220,7 +220,7 @@ static GluaStorageValue tokens_to_lua_value(lua_State *L, GluaTokenParser *token
             (*table_value.value.table_value)[prop_key] = sub_value;
             if (token_parser->eof())
             {
-                global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
+                global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
                 if (nullptr != result)
                     *result = false;
                 return nil_storage_value();
@@ -238,7 +238,7 @@ static GluaStorageValue tokens_to_lua_value(lua_State *L, GluaTokenParser *token
             }
             else
             {
-                global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
+                global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
                 if (nullptr != result)
                     *result = false;
                 return nil_storage_value();
@@ -252,7 +252,7 @@ static GluaStorageValue tokens_to_lua_value(lua_State *L, GluaTokenParser *token
     {
         if (token_parser->eof())
         {
-            global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
+            global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
             if (nullptr != result)
                 *result = false;
             return nil_storage_value();
@@ -277,7 +277,7 @@ static GluaStorageValue tokens_to_lua_value(lua_State *L, GluaTokenParser *token
         {
             if (token_parser->eof())
             {
-                global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
+                global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
                 if (nullptr != result)
                     *result = false;
                 return nil_storage_value();
@@ -295,7 +295,7 @@ static GluaStorageValue tokens_to_lua_value(lua_State *L, GluaTokenParser *token
             (*table_value.value.table_value)[prop_key] = sub_value;
             if (token_parser->eof())
             {
-                global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
+                global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
                 if (nullptr != result)
                     *result = false;
                 return nil_storage_value();
@@ -313,7 +313,7 @@ static GluaStorageValue tokens_to_lua_value(lua_State *L, GluaTokenParser *token
             }
             else
             {
-                global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
+                global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "parse json error(unknown token %s)", token.token.c_str());
                 if (nullptr != result)
                     *result = false;
                 return nil_storage_value();

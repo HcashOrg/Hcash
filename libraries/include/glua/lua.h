@@ -339,8 +339,8 @@ LUA_API int (lua_isyieldable)(lua_State *L);
 #define LUA_GCSETSTEPMUL	7
 #define LUA_GCISRUNNING		9
 
-#define THINKYOUNG_CONTRACT_APIS_LIMIT 1024
-#define THINKYOUNG_CONTRACT_API_NAME_MAX_LENGTH 1024
+#define HSRCORE_CONTRACT_APIS_LIMIT 1024
+#define HSRCORE_CONTRACT_API_NAME_MAX_LENGTH 1024
 
 LUA_API int (lua_gc)(lua_State *L, int what, int data);
 

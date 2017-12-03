@@ -952,7 +952,7 @@ static int get_line_in_current_proto(CallInfo* ci, Proto *proto)
 #define lua_check_in_vm_error(cond, error_msg) {    \
 if (!(cond)) {      \
   L->force_stopping = true; \
-  global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, (error_msg));       \
+  global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, (error_msg));       \
   vmbreak;                                   \
      }                             \
 }
@@ -1088,7 +1088,7 @@ newframe:  /* reentry point when frame changes (call/return) */
 				delete ldf;
 		}
         if (!ci || ci->u.l.savedpc == nullptr) {
-          global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_LIMIT_OVER_ERROR, "wrong bytecode instruction, can't find savedpc");
+          global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_LIMIT_OVER_ERROR, "wrong bytecode instruction, can't find savedpc");
           vmbreak;
         }
         Instruction i = *(ci->u.l.savedpc++);
@@ -1100,7 +1100,7 @@ newframe:  /* reentry point when frame changes (call/return) */
         // limit instructions count, and executed instructions
         if (has_insts_limit && *insts_executed_count > insts_limit)
         {
-            global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_LIMIT_OVER_ERROR, "over instructions limit");
+            global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_LIMIT_OVER_ERROR, "over instructions limit");
             vmbreak;
         }
         if (stopped_pointer && *stopped_pointer > 0)
@@ -1113,7 +1113,7 @@ newframe:  /* reentry point when frame changes (call/return) */
         if ((GET_OPCODE(i) == OP_CALL || GET_OPCODE(i) == OP_TAILCALL)
             && global_glua_chain_api->check_contract_api_instructions_over_limit(L))
         {
-            global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_LIMIT_OVER_ERROR, "over instructions limit");
+            global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_LIMIT_OVER_ERROR, "over instructions limit");
             vmbreak;
         }
 
@@ -1180,7 +1180,7 @@ newframe:  /* reentry point when frame changes (call/return) */
                 bool istable = ttistable(rb);
                 if (!istable)
                 {
-                    global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, "getfield of nil, need table here");
+                    global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, "getfield of nil, need table here");
                     L->force_stopping = true;
                     vmbreak;
                 }
@@ -1192,7 +1192,7 @@ newframe:  /* reentry point when frame changes (call/return) */
                 lua_check_in_vm_error(upval_index < cl->nupvalues && upval_index >=0, "upvalue error");
 				if(!cl->upvals[upval_index])
 				{
-					global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, "set upvalue of nil, need table here");
+					global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, "set upvalue of nil, need table here");
 					L->force_stopping = true;
 					vmbreak;
 				}
@@ -1253,7 +1253,7 @@ newframe:  /* reentry point when frame changes (call/return) */
                     setfltvalue(ra, luai_numadd(L, nb, nc));
                 }
                 else {
-                    global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, "+ can only accept numbers");
+                    global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, "+ can only accept numbers");
                     Protect(luaT_trybinTM(L, rb, rc, ra, TM_ADD));
                 }
                 vmbreak;
@@ -1270,7 +1270,7 @@ newframe:  /* reentry point when frame changes (call/return) */
                     setfltvalue(ra, luai_numsub(L, nb, nc));
                 }
                 else {
-                  global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, "- can only accept numbers");
+                  global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, "- can only accept numbers");
                     Protect(luaT_trybinTM(L, rb, rc, ra, TM_SUB));
                 }
                 vmbreak;
@@ -1287,7 +1287,7 @@ newframe:  /* reentry point when frame changes (call/return) */
                     setfltvalue(ra, luai_nummul(L, nb, nc));
                 }
                 else {
-                    global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, "* can only accept numbers");
+                    global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, "* can only accept numbers");
                     Protect(luaT_trybinTM(L, rb, rc, ra, TM_MUL));
                 }
                 vmbreak;
@@ -1300,7 +1300,7 @@ newframe:  /* reentry point when frame changes (call/return) */
                     setfltvalue(ra, luai_numdiv(L, nb, nc));
                 }
                 else {
-                    global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, "/ can only accept numbers");
+                    global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, "/ can only accept numbers");
                     Protect(luaT_trybinTM(L, rb, rc, ra, TM_DIV));
                 }
                 vmbreak;
@@ -1313,7 +1313,7 @@ newframe:  /* reentry point when frame changes (call/return) */
                     setivalue(ra, intop(&, ib, ic));
                 }
                 else {
-                    global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, "& can only accept integer");
+                    global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, "& can only accept integer");
                     Protect(luaT_trybinTM(L, rb, rc, ra, TM_BAND));
                 }
                 vmbreak;
@@ -1326,7 +1326,7 @@ newframe:  /* reentry point when frame changes (call/return) */
                     setivalue(ra, intop(| , ib, ic));
                 }
                 else {
-                    global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, "| can only accept integer");
+                    global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, "| can only accept integer");
                     Protect(luaT_trybinTM(L, rb, rc, ra, TM_BOR));
                 }
                 vmbreak;
@@ -1339,7 +1339,7 @@ newframe:  /* reentry point when frame changes (call/return) */
                     setivalue(ra, intop(^, ib, ic));
                 }
                 else {
-                    global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, "~ can only accept integer");
+                    global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, "~ can only accept integer");
                     Protect(luaT_trybinTM(L, rb, rc, ra, TM_BXOR));
                 }
                 vmbreak;
@@ -1352,7 +1352,7 @@ newframe:  /* reentry point when frame changes (call/return) */
                     setivalue(ra, luaV_shiftl(ib, ic));
                 }
                 else {
-                    global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, "<< can only accept integer");
+                    global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, "<< can only accept integer");
                     Protect(luaT_trybinTM(L, rb, rc, ra, TM_SHL));
                 }
                 vmbreak;
@@ -1365,7 +1365,7 @@ newframe:  /* reentry point when frame changes (call/return) */
                     setivalue(ra, luaV_shiftl(ib, -ic));
                 }
                 else {
-                    global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, ">> can only accept integer");
+                    global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, ">> can only accept integer");
                     Protect(luaT_trybinTM(L, rb, rc, ra, TM_SHR));
                 }
                 vmbreak;
@@ -1384,7 +1384,7 @@ newframe:  /* reentry point when frame changes (call/return) */
                     setfltvalue(ra, m);
                 }
                 else {
-                    global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, "% can only accept numbers");
+                    global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, "% can only accept numbers");
                     Protect(luaT_trybinTM(L, rb, rc, ra, TM_MOD));
                 }
                 vmbreak;
@@ -1401,7 +1401,7 @@ newframe:  /* reentry point when frame changes (call/return) */
                     setfltvalue(ra, luai_numidiv(L, nb, nc));
                 }
                 else {
-                    global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, "// can only accept numbers");
+                    global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, "// can only accept numbers");
                     Protect(luaT_trybinTM(L, rb, rc, ra, TM_IDIV));
                 }
                 vmbreak;
@@ -1414,7 +1414,7 @@ newframe:  /* reentry point when frame changes (call/return) */
                     setfltvalue(ra, luai_numpow(L, nb, nc));
                 }
                 else {
-                    global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, "^ can only accept numbers");
+                    global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, "^ can only accept numbers");
                     Protect(luaT_trybinTM(L, rb, rc, ra, TM_POW));
                 }
                 vmbreak;
@@ -1430,7 +1430,7 @@ newframe:  /* reentry point when frame changes (call/return) */
                     setfltvalue(ra, luai_numunm(L, nb));
                 }
                 else {
-                    global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, "-<exp> can only accept numbers");
+                    global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, "-<exp> can only accept numbers");
                     Protect(luaT_trybinTM(L, rb, rb, ra, TM_UNM));
                 }
                 vmbreak;
@@ -1442,7 +1442,7 @@ newframe:  /* reentry point when frame changes (call/return) */
                     setivalue(ra, intop(^, ~l_castS2U(0), ib));
                 }
                 else {
-                    global_glua_chain_api->throw_exception(L, THINKYOUNG_API_LVM_ERROR, "~<exp> can only accept numbers");
+                    global_glua_chain_api->throw_exception(L, HSRCORE_API_LVM_ERROR, "~<exp> can only accept numbers");
                     Protect(luaT_trybinTM(L, rb, rb, ra, TM_BNOT));
                 }
                 vmbreak;
@@ -1473,7 +1473,7 @@ newframe:  /* reentry point when frame changes (call/return) */
             }
             vmcase(OP_JMP) {
                 dojump(ci, i, 0); // maybe only `goto` source code line is compiled to OP_JMP opcode line
-                // hsrcore_api_lua_throw_exception(L, THINKYOUNG_API_LVM_ERROR, "hsrcore lua not support goto symbol");
+                // hsrcore_api_lua_throw_exception(L, HSRCORE_API_LVM_ERROR, "hsrcore lua not support goto symbol");
                 vmbreak;
             }
             vmcase(OP_EQ) {

@@ -2742,15 +2742,16 @@ namespace hsrcore {
             FC_RETHROW_EXCEPTIONS(warn, "")
         }
 
-        bool CommonApiClient::wallet_check_address(const std::string& address)
+        bool CommonApiClient::wallet_check_address(const std::string& address, int8_t address_type /* = fc::json::from_string("0").as<int8_t>() */)
         {
-            ilog("received RPC call: wallet_check_address(${address})", ("address", address));
+            ilog("received RPC call: wallet_check_address(${address}, ${address_type})", ("address", address)("address_type", address_type));
             hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
             uint64_t call_id = 0;
             fc::variants args;
             if( glog != NULL )
             {
                 args.push_back( fc::variant(address) );
+                args.push_back( fc::variant(address_type) );
                 call_id = glog->log_call_started( this, "wallet_check_address", args );
             }
 
@@ -2762,7 +2763,7 @@ namespace hsrcore {
             } execution_time_logger;
             try
             {
-                bool result =             get_impl()->wallet_check_address(address);
+                bool result =             get_impl()->wallet_check_address(address, address_type);
                 if( call_id != 0 )
                     glog->log_call_finished( call_id, this, "wallet_check_address", args, fc::variant(result) );
 
@@ -5005,7 +5006,7 @@ namespace hsrcore {
             FC_RETHROW_EXCEPTIONS(warn, "")
         }
 
-        bool CommonApiClient::wallet_import_hshare_private_key(const std::string& acc_name, const fc::path& infile)
+        bool CommonApiClient::wallet_import_hshare_private_key(const std::string& acc_name, const hsrcore::blockchain::FilePath& infile)
         {
             ilog("received RPC call: wallet_import_hshare_private_key(${acc_name}, ${infile})", ("acc_name", acc_name)("infile", infile));
             hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
@@ -5035,7 +5036,7 @@ namespace hsrcore {
             FC_RETHROW_EXCEPTIONS(warn, "")
         }
 
-        bool CommonApiClient::wallet_import_hshare_encrypted_private_key(const std::string& passwd, const std::string& acc_name, const fc::path& infile)
+        bool CommonApiClient::wallet_import_hshare_encrypted_private_key(const std::string& passwd, const std::string& acc_name, const hsrcore::blockchain::FilePath& infile)
         {
             ilog("received RPC call: wallet_import_hshare_encrypted_private_key(*********, ${acc_name}, ${infile})", ("acc_name", acc_name)("infile", infile));
             hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
@@ -5063,6 +5064,375 @@ namespace hsrcore {
             bool result =              get_impl()->wallet_import_hshare_encrypted_private_key(passwd, acc_name, infile);
             if( call_id != 0 )
                 glog->log_call_finished( call_id, this, "wallet_import_hshare_encrypted_private_key", args, fc::variant(result) );
+
+                return result;
+            }
+            FC_RETHROW_EXCEPTIONS(warn, "")
+        }
+
+        hsrcore::wallet::TransactionBuilder CommonApiClient::wallet_builder_add_signature(const hsrcore::wallet::TransactionBuilder& builder, bool broadcast /* = fc::json::from_string("false").as<bool>() */)
+        {
+            ilog("received RPC call: wallet_builder_add_signature(${builder}, ${broadcast})", ("builder", builder)("broadcast", broadcast));
+            hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
+            uint64_t call_id = 0;
+            fc::variants args;
+            if( glog != NULL )
+            {
+                args.push_back( fc::variant(builder) );
+                args.push_back( fc::variant(broadcast) );
+                call_id = glog->log_call_started( this, "wallet_builder_add_signature", args );
+            }
+
+            struct scope_exit
+            {
+                fc::time_point start_time;
+                scope_exit() : start_time(fc::time_point::now()) {}
+                ~scope_exit() { dlog("RPC call wallet_builder_add_signature finished in ${time} ms", ("time", (fc::time_point::now() - start_time).count() / 1000)); }
+            } execution_time_logger;
+            try
+            {
+                hsrcore::wallet::TransactionBuilder result =             get_impl()->wallet_builder_add_signature(builder, broadcast);
+                if( call_id != 0 )
+                    glog->log_call_finished( call_id, this, "wallet_builder_add_signature", args, fc::variant(result) );
+
+                return result;
+            }
+            FC_RETHROW_EXCEPTIONS(warn, "")
+        }
+
+        hsrcore::wallet::TransactionBuilder CommonApiClient::wallet_builder_file_add_signature(const hsrcore::blockchain::FilePath& builder_path, bool broadcast /* = fc::json::from_string("false").as<bool>() */)
+        {
+            ilog("received RPC call: wallet_builder_file_add_signature(${builder_path}, ${broadcast})", ("builder_path", builder_path)("broadcast", broadcast));
+            hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
+            uint64_t call_id = 0;
+            fc::variants args;
+            if( glog != NULL )
+            {
+                args.push_back( fc::variant(builder_path) );
+                args.push_back( fc::variant(broadcast) );
+                call_id = glog->log_call_started( this, "wallet_builder_file_add_signature", args );
+            }
+
+            struct scope_exit
+            {
+                fc::time_point start_time;
+                scope_exit() : start_time(fc::time_point::now()) {}
+                ~scope_exit() { dlog("RPC call wallet_builder_file_add_signature finished in ${time} ms", ("time", (fc::time_point::now() - start_time).count() / 1000)); }
+            } execution_time_logger;
+            try
+            {
+                hsrcore::wallet::TransactionBuilder result =             get_impl()->wallet_builder_file_add_signature(builder_path, broadcast);
+                if( call_id != 0 )
+                    glog->log_call_finished( call_id, this, "wallet_builder_file_add_signature", args, fc::variant(result) );
+
+                return result;
+            }
+            FC_RETHROW_EXCEPTIONS(warn, "")
+        }
+
+        hsrcore::wallet::WalletTransactionEntry CommonApiClient::wallet_multisig_deposit(const std::string& amount, const std::string& asset_symbol, const std::string& from_account, const std::string& to_account, const hsrcore::blockchain::Imessage& memo_message /* = fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>() */)
+        {
+            ilog("received RPC call: wallet_multisig_deposit(${amount}, ${asset_symbol}, ${from_account}, ${to_account}, ${memo_message})", ("amount", amount)("asset_symbol", asset_symbol)("from_account", from_account)("to_account", to_account)("memo_message", memo_message));
+            hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
+            uint64_t call_id = 0;
+            fc::variants args;
+            if( glog != NULL )
+            {
+                args.push_back( fc::variant(amount) );
+                args.push_back( fc::variant(asset_symbol) );
+                args.push_back( fc::variant(from_account) );
+                args.push_back( fc::variant(to_account) );
+                args.push_back( fc::variant(memo_message) );
+                call_id = glog->log_call_started( this, "wallet_multisig_deposit", args );
+            }
+
+            struct scope_exit
+            {
+                fc::time_point start_time;
+                scope_exit() : start_time(fc::time_point::now()) {}
+                ~scope_exit() { dlog("RPC call wallet_multisig_deposit finished in ${time} ms", ("time", (fc::time_point::now() - start_time).count() / 1000)); }
+            } execution_time_logger;
+            try
+            {
+                hsrcore::wallet::WalletTransactionEntry result =             get_impl()->wallet_multisig_deposit(amount, asset_symbol, from_account, to_account, memo_message);
+                if( call_id != 0 )
+                    glog->log_call_finished( call_id, this, "wallet_multisig_deposit", args, fc::variant(result) );
+
+                return result;
+            }
+            FC_RETHROW_EXCEPTIONS(warn, "")
+        }
+
+        fc::variant_object CommonApiClient::wallet_import_multisig_account(const hsrcore::blockchain::Address& multisig_address)
+        {
+            ilog("received RPC call: wallet_import_multisig_account(${multisig_address})", ("multisig_address", multisig_address));
+            hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
+            uint64_t call_id = 0;
+            fc::variants args;
+            if( glog != NULL )
+            {
+                args.push_back( fc::variant(multisig_address) );
+                call_id = glog->log_call_started( this, "wallet_import_multisig_account", args );
+            }
+
+            struct scope_exit
+            {
+                fc::time_point start_time;
+                scope_exit() : start_time(fc::time_point::now()) {}
+                ~scope_exit() { dlog("RPC call wallet_import_multisig_account finished in ${time} ms", ("time", (fc::time_point::now() - start_time).count() / 1000)); }
+            } execution_time_logger;
+            try
+            {
+                fc::variant_object result =             get_impl()->wallet_import_multisig_account(multisig_address);
+                if( call_id != 0 )
+                    glog->log_call_finished( call_id, this, "wallet_import_multisig_account", args, fc::variant(result) );
+
+                return result;
+            }
+            FC_RETHROW_EXCEPTIONS(warn, "")
+        }
+
+        hsrcore::blockchain::Address CommonApiClient::wallet_import_multisig_account_by_detail(const std::string& asset_symbol, uint32_t m, const std::vector<hsrcore::blockchain::Address>& addresses)
+        {
+            ilog("received RPC call: wallet_import_multisig_account_by_detail(${asset_symbol}, ${m}, ${addresses})", ("asset_symbol", asset_symbol)("m", m)("addresses", addresses));
+            hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
+            uint64_t call_id = 0;
+            fc::variants args;
+            if( glog != NULL )
+            {
+                args.push_back( fc::variant(asset_symbol) );
+                args.push_back( fc::variant(m) );
+                args.push_back( fc::variant(addresses) );
+                call_id = glog->log_call_started( this, "wallet_import_multisig_account_by_detail", args );
+            }
+
+            struct scope_exit
+            {
+                fc::time_point start_time;
+                scope_exit() : start_time(fc::time_point::now()) {}
+                ~scope_exit() { dlog("RPC call wallet_import_multisig_account_by_detail finished in ${time} ms", ("time", (fc::time_point::now() - start_time).count() / 1000)); }
+            } execution_time_logger;
+            try
+            {
+                hsrcore::blockchain::Address result =             get_impl()->wallet_import_multisig_account_by_detail(asset_symbol, m, addresses);
+                if( call_id != 0 )
+                    glog->log_call_finished( call_id, this, "wallet_import_multisig_account_by_detail", args, fc::variant(result) );
+
+                return result;
+            }
+            FC_RETHROW_EXCEPTIONS(warn, "")
+        }
+
+        hsrcore::wallet::TransactionBuilder CommonApiClient::wallet_multisig_withdraw_start(const std::string& amount, const std::string& asset_symbol, const hsrcore::blockchain::Address& from, const hsrcore::blockchain::Address& to_address, const hsrcore::blockchain::Imessage& memo_message /* = fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>() */, const hsrcore::blockchain::FilePath& builder_path /* = fc::json::from_string("\"\"").as<hsrcore::blockchain::FilePath>() */)
+        {
+            ilog("received RPC call: wallet_multisig_withdraw_start(${amount}, ${asset_symbol}, ${from}, ${to_address}, ${memo_message}, ${builder_path})", ("amount", amount)("asset_symbol", asset_symbol)("from", from)("to_address", to_address)("memo_message", memo_message)("builder_path", builder_path));
+            hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
+            uint64_t call_id = 0;
+            fc::variants args;
+            if( glog != NULL )
+            {
+                args.push_back( fc::variant(amount) );
+                args.push_back( fc::variant(asset_symbol) );
+                args.push_back( fc::variant(from) );
+                args.push_back( fc::variant(to_address) );
+                args.push_back( fc::variant(memo_message) );
+                args.push_back( fc::variant(builder_path) );
+                call_id = glog->log_call_started( this, "wallet_multisig_withdraw_start", args );
+            }
+
+            struct scope_exit
+            {
+                fc::time_point start_time;
+                scope_exit() : start_time(fc::time_point::now()) {}
+                ~scope_exit() { dlog("RPC call wallet_multisig_withdraw_start finished in ${time} ms", ("time", (fc::time_point::now() - start_time).count() / 1000)); }
+            } execution_time_logger;
+            try
+            {
+                hsrcore::wallet::TransactionBuilder result =             get_impl()->wallet_multisig_withdraw_start(amount, asset_symbol, from, to_address, memo_message, builder_path);
+                if( call_id != 0 )
+                    glog->log_call_finished( call_id, this, "wallet_multisig_withdraw_start", args, fc::variant(result) );
+
+                return result;
+            }
+            FC_RETHROW_EXCEPTIONS(warn, "")
+        }
+
+        std::pair<std::string, hsrcore::wallet::WalletTransactionEntry> CommonApiClient::wallet_create_multisig_account(const std::string& amount, const std::string& asset_symbol, const std::string& from_account, uint32_t m, const std::vector<hsrcore::blockchain::Address>& addresses, const hsrcore::blockchain::Imessage& memo_message /* = fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>() */)
+        {
+            ilog("received RPC call: wallet_create_multisig_account(${amount}, ${asset_symbol}, ${from_account}, ${m}, ${addresses}, ${memo_message})", ("amount", amount)("asset_symbol", asset_symbol)("from_account", from_account)("m", m)("addresses", addresses)("memo_message", memo_message));
+            hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
+            uint64_t call_id = 0;
+            fc::variants args;
+            if( glog != NULL )
+            {
+                args.push_back( fc::variant(amount) );
+                args.push_back( fc::variant(asset_symbol) );
+                args.push_back( fc::variant(from_account) );
+                args.push_back( fc::variant(m) );
+                args.push_back( fc::variant(addresses) );
+                args.push_back( fc::variant(memo_message) );
+                call_id = glog->log_call_started( this, "wallet_create_multisig_account", args );
+            }
+
+            struct scope_exit
+            {
+                fc::time_point start_time;
+                scope_exit() : start_time(fc::time_point::now()) {}
+                ~scope_exit() { dlog("RPC call wallet_create_multisig_account finished in ${time} ms", ("time", (fc::time_point::now() - start_time).count() / 1000)); }
+            } execution_time_logger;
+            try
+            {
+                std::pair<std::string, hsrcore::wallet::WalletTransactionEntry> result =             get_impl()->wallet_create_multisig_account(amount, asset_symbol, from_account, m, addresses, memo_message);
+                if( call_id != 0 )
+                    glog->log_call_finished( call_id, this, "wallet_create_multisig_account", args, fc::variant(result) );
+
+                return result;
+            }
+            FC_RETHROW_EXCEPTIONS(warn, "")
+        }
+
+        std::vector<hsrcore::wallet::PrettyTransaction> CommonApiClient::wallet_multisig_account_history(const std::string& account_address, const std::string& asset_symbol /* = fc::json::from_string("\"\"").as<std::string>() */, int32_t limit /* = fc::json::from_string("0").as<int32_t>() */, uint32_t start_block_num /* = fc::json::from_string("0").as<uint32_t>() */, uint32_t end_block_num /* = fc::json::from_string("-1").as<uint32_t>() */) const
+        {
+            ilog("received RPC call: wallet_multisig_account_history(${account_address}, ${asset_symbol}, ${limit}, ${start_block_num}, ${end_block_num})", ("account_address", account_address)("asset_symbol", asset_symbol)("limit", limit)("start_block_num", start_block_num)("end_block_num", end_block_num));
+            hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
+            uint64_t call_id = 0;
+            fc::variants args;
+            if( glog != NULL )
+            {
+                args.push_back( fc::variant(account_address) );
+                args.push_back( fc::variant(asset_symbol) );
+                args.push_back( fc::variant(limit) );
+                args.push_back( fc::variant(start_block_num) );
+                args.push_back( fc::variant(end_block_num) );
+                call_id = glog->log_call_started( this, "wallet_multisig_account_history", args );
+            }
+
+            struct scope_exit
+            {
+                fc::time_point start_time;
+                scope_exit() : start_time(fc::time_point::now()) {}
+                ~scope_exit() { dlog("RPC call wallet_multisig_account_history finished in ${time} ms", ("time", (fc::time_point::now() - start_time).count() / 1000)); }
+            } execution_time_logger;
+            try
+            {
+                std::vector<hsrcore::wallet::PrettyTransaction> result =             get_impl()->wallet_multisig_account_history(account_address, asset_symbol, limit, start_block_num, end_block_num);
+                if( call_id != 0 )
+                    glog->log_call_finished( call_id, this, "wallet_multisig_account_history", args, fc::variant(result) );
+
+                return result;
+            }
+            FC_RETHROW_EXCEPTIONS(warn, "")
+        }
+
+        hsrcore::wallet::AccountBalanceSummaryType CommonApiClient::wallet_multisig_account_balance(const std::string& account_address /* = fc::json::from_string("\"\"").as<std::string>() */) const
+        {
+            ilog("received RPC call: wallet_multisig_account_balance(${account_address})", ("account_address", account_address));
+            hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
+            uint64_t call_id = 0;
+            fc::variants args;
+            if( glog != NULL )
+            {
+                args.push_back( fc::variant(account_address) );
+                call_id = glog->log_call_started( this, "wallet_multisig_account_balance", args );
+            }
+
+            struct scope_exit
+            {
+                fc::time_point start_time;
+                scope_exit() : start_time(fc::time_point::now()) {}
+                ~scope_exit() { dlog("RPC call wallet_multisig_account_balance finished in ${time} ms", ("time", (fc::time_point::now() - start_time).count() / 1000)); }
+            } execution_time_logger;
+            try
+            {
+                hsrcore::wallet::AccountBalanceSummaryType result =             get_impl()->wallet_multisig_account_balance(account_address);
+                if( call_id != 0 )
+                    glog->log_call_finished( call_id, this, "wallet_multisig_account_balance", args, fc::variant(result) );
+
+                return result;
+            }
+            FC_RETHROW_EXCEPTIONS(warn, "")
+        }
+
+        fc::variant_object CommonApiClient::wallet_builder_get_multisig_detail(const hsrcore::wallet::TransactionBuilder& transaction_builder) const
+        {
+            ilog("received RPC call: wallet_builder_get_multisig_detail(${transaction_builder})", ("transaction_builder", transaction_builder));
+            hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
+            uint64_t call_id = 0;
+            fc::variants args;
+            if( glog != NULL )
+            {
+                args.push_back( fc::variant(transaction_builder) );
+                call_id = glog->log_call_started( this, "wallet_builder_get_multisig_detail", args );
+            }
+
+            struct scope_exit
+            {
+                fc::time_point start_time;
+                scope_exit() : start_time(fc::time_point::now()) {}
+                ~scope_exit() { dlog("RPC call wallet_builder_get_multisig_detail finished in ${time} ms", ("time", (fc::time_point::now() - start_time).count() / 1000)); }
+            } execution_time_logger;
+            try
+            {
+                fc::variant_object result =             get_impl()->wallet_builder_get_multisig_detail(transaction_builder);
+                if( call_id != 0 )
+                    glog->log_call_finished( call_id, this, "wallet_builder_get_multisig_detail", args, fc::variant(result) );
+
+                return result;
+            }
+            FC_RETHROW_EXCEPTIONS(warn, "")
+        }
+
+        fc::variant_object CommonApiClient::wallet_builder_file_get_multisig_detail(const hsrcore::blockchain::FilePath& builder_path) const
+        {
+            ilog("received RPC call: wallet_builder_file_get_multisig_detail(${builder_path})", ("builder_path", builder_path));
+            hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
+            uint64_t call_id = 0;
+            fc::variants args;
+            if( glog != NULL )
+            {
+                args.push_back( fc::variant(builder_path) );
+                call_id = glog->log_call_started( this, "wallet_builder_file_get_multisig_detail", args );
+            }
+
+            struct scope_exit
+            {
+                fc::time_point start_time;
+                scope_exit() : start_time(fc::time_point::now()) {}
+                ~scope_exit() { dlog("RPC call wallet_builder_file_get_multisig_detail finished in ${time} ms", ("time", (fc::time_point::now() - start_time).count() / 1000)); }
+            } execution_time_logger;
+            try
+            {
+                fc::variant_object result =             get_impl()->wallet_builder_file_get_multisig_detail(builder_path);
+                if( call_id != 0 )
+                    glog->log_call_finished( call_id, this, "wallet_builder_file_get_multisig_detail", args, fc::variant(result) );
+
+                return result;
+            }
+            FC_RETHROW_EXCEPTIONS(warn, "")
+        }
+
+        bool CommonApiClient::set_pos_generate()
+        {
+            ilog("received RPC call: set_pos_generate()", );
+            hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
+            uint64_t call_id = 0;
+            fc::variants args;
+            if( glog != NULL )
+            {
+                call_id = glog->log_call_started( this, "set_pos_generate", args );
+            }
+
+            struct scope_exit
+            {
+                fc::time_point start_time;
+                scope_exit() : start_time(fc::time_point::now()) {}
+                ~scope_exit() { dlog("RPC call set_pos_generate finished in ${time} ms", ("time", (fc::time_point::now() - start_time).count() / 1000)); }
+            } execution_time_logger;
+            try
+            {
+                bool result =             get_impl()->set_pos_generate();
+                if( call_id != 0 )
+                    glog->log_call_finished( call_id, this, "set_pos_generate", args, fc::variant(result) );
 
                 return result;
             }
@@ -6921,9 +7291,9 @@ namespace hsrcore {
             FC_RETHROW_EXCEPTIONS(warn, "")
         }
 
-        bool CommonApiClient::submit_block(const std::string& HashNoNonce, uint64_t Nonce)
+        bool CommonApiClient::submit_block(const std::string& HashNoNonce, uint64_t Nonce, uint64_t Extra_Nonce)
         {
-            ilog("received RPC call: submit_block(${HashNoNonce}, ${Nonce})", ("HashNoNonce", HashNoNonce)("Nonce", Nonce));
+            ilog("received RPC call: submit_block(${HashNoNonce}, ${Nonce}, ${Extra_Nonce})", ("HashNoNonce", HashNoNonce)("Nonce", Nonce)("Extra_Nonce", Extra_Nonce));
             hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
             uint64_t call_id = 0;
             fc::variants args;
@@ -6931,6 +7301,7 @@ namespace hsrcore {
             {
                 args.push_back( fc::variant(HashNoNonce) );
                 args.push_back( fc::variant(Nonce) );
+                args.push_back( fc::variant(Extra_Nonce) );
                 call_id = glog->log_call_started( this, "submit_block", args );
             }
 
@@ -6942,9 +7313,38 @@ namespace hsrcore {
             } execution_time_logger;
             try
             {
-                bool result =             get_impl()->submit_block(HashNoNonce, Nonce);
+                bool result =             get_impl()->submit_block(HashNoNonce, Nonce, Extra_Nonce);
                 if( call_id != 0 )
                     glog->log_call_finished( call_id, this, "submit_block", args, fc::variant(result) );
+
+                return result;
+            }
+            FC_RETHROW_EXCEPTIONS(warn, "")
+        }
+
+        bool CommonApiClient::submit_blockex(const std::string& data)
+        {
+            ilog("received RPC call: submit_blockex(${data})", ("data", data));
+            hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
+            uint64_t call_id = 0;
+            fc::variants args;
+            if( glog != NULL )
+            {
+                args.push_back( fc::variant(data) );
+                call_id = glog->log_call_started( this, "submit_blockex", args );
+            }
+
+            struct scope_exit
+            {
+                fc::time_point start_time;
+                scope_exit() : start_time(fc::time_point::now()) {}
+                ~scope_exit() { dlog("RPC call submit_blockex finished in ${time} ms", ("time", (fc::time_point::now() - start_time).count() / 1000)); }
+            } execution_time_logger;
+            try
+            {
+                bool result =             get_impl()->submit_blockex(data);
+                if( call_id != 0 )
+                    glog->log_call_finished( call_id, this, "submit_blockex", args, fc::variant(result) );
 
                 return result;
             }

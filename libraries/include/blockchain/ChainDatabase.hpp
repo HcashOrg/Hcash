@@ -250,8 +250,8 @@ namespace hsrcore {
             *
             * @return FullBlock
             */
-            FullBlock                  generate_block(const time_point_sec block_timestamp,PublicKeyType coin_base,
-                const DelegateConfig& config = DelegateConfig(), bool is_proof_of_stake=false);
+            FullBlock                  generate_block(const time_point_sec block_timestamp,  Address coin_base,
+                const DelegateConfig& config = DelegateConfig(), uint32_t is_multisig_account=0, bool is_proof_of_stake=false);
 
 
 			/** calculate next block difficulty
@@ -259,9 +259,9 @@ namespace hsrcore {
 			* @param  pindexLast  head block id
 			* @param  fProofOfStake  whether proof of stake
 			*
-			* @return uint32_t
-			*/
-			uint32_t GetNextTargetRequired(BlockIdType pindexLast, bool fProofOfStake);
+			* @return std::pair<uint32_t,uint32_t>  pow nbits ,pos sbits
+ 			*/
+			std::pair<uint32_t,uint32_t> GetNextTargetRequired(BlockIdType pindexLast);
 
 
 			/** get last block header by block type
@@ -617,6 +617,9 @@ namespace hsrcore {
             * @return uint32_t
             */
             uint32_t get_fork_list_num();
+
+
+			void set_test_net(bool is_test_net);
 
             /**  Export fork graph
             *
@@ -1213,6 +1216,8 @@ namespace hsrcore {
             */
             virtual  oContractEntry  contract_lookup_by_id(const ContractIdType&)const override;
 
+			virtual oContractIdEntry contractid_lookup_by_name(const ContractName&)const override;
+
 
             /**
             * Lookup ContractIdType by contract name from blockchain db.
@@ -1241,6 +1246,9 @@ namespace hsrcore {
             */
             virtual void contract_insert_into_id_map(const ContractIdType&, const ContractEntry&) override;
 
+			virtual void contractname_insert_into_id_map(const ContractName&, const ContractIdEntry&) override;
+
+
             /**  Store contractStorage to db by contract_id
             *
             * @param  id  ContractIdType
@@ -1257,7 +1265,7 @@ namespace hsrcore {
             *
             * @return void
             */
-            virtual void contract_insert_into_name_map(const ContractName&, const ContractIdType&) override;
+            
 
             /**  Erase from db by contract_id
             *
@@ -1267,6 +1275,7 @@ namespace hsrcore {
             */
             virtual void contract_erase_from_id_map(const ContractIdType&) override;
 
+			virtual void contractname_erase_from_id_map(const ContractName&) override;
             /**  Erase from db by contract_id
             *
             * @param  id  ContractIdType
@@ -1281,7 +1290,7 @@ namespace hsrcore {
             *
             * @return void
             */
-            virtual void contract_erase_from_name_map(const ContractName&) override;
+            /*virtual void contract_erase_from_name_map(const ContractName&) override;*/
 
 			/** lookup result transaction id from db by request transaction id
 			*

@@ -48,6 +48,7 @@ namespace hsrcore {
             bool                        is_market_cancel = false;
             TransactionIdType         trx_id;
             uint32_t                    block_num = 0;
+			uint32_t					Confirms=0;
             // position of the trx in a block
             uint32_t                    block_position = 0;
             // transaction type
@@ -75,6 +76,7 @@ namespace hsrcore {
             TransactionIdType       result_trx_id;
             TransactionIdType       orig_trx_id;
             uint32_t                block_num = 0;
+			uint32_t				Confirms = 0;
             uint32_t                block_position = 0;
             fc::enum_type<hsrcore::blockchain::TransactionType, uint32_t>   trx_type;
             bool is_completed;
@@ -149,6 +151,7 @@ FC_REFLECT(hsrcore::wallet::PrettyTransaction,
 (is_market)
 (is_market_cancel)
 (trx_id)
+(Confirms)
 (block_num)
 (block_position)
 (trx_type)
@@ -173,6 +176,7 @@ FC_REFLECT(hsrcore::wallet::PrettyContractTransaction,
 (result_trx_id)
 (orig_trx_id)
 (block_num)
+(Confirms)
 (block_position)
 (trx_type)
 (is_completed)

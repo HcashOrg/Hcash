@@ -26,7 +26,8 @@ namespace hsrcore {
             contact_entry_type = 4,
             property_entry_type = 7,
             setting_entry_type = 9,
-			contract_entry_type = 10
+			contract_entry_type = 10,
+			multisig_balance_id_type=11
         };
 
         enum PropertyEnum
@@ -165,6 +166,8 @@ namespace hsrcore {
             optional<PublicKeyType> to_account;
 			optional<BalanceIdType> from_contract_balance;
 			optional<BalanceIdType> to_contract_balance;
+			optional<Address>		from_multisig_address;
+			optional<Address>		to_multisig_address;
             Asset                     amount;
             string                    memo;
             optional<PublicKeyType> memo_from_account;
@@ -242,6 +245,7 @@ namespace hsrcore {
         typedef WalletEntry<TransactionData, transaction_entry_type>    WalletTransactionEntry;
         typedef WalletEntry<Setting, setting_entry_type>        WalletSettingEntry;
 		typedef WalletEntry<ContractEntry, contract_entry_type> WalletContractEntry;
+		typedef WalletEntry<BalanceIdType, multisig_balance_id_type> WalletMultisigBalanceId;
 
 		typedef optional<WalletContractEntry>                             oWalletContractEntry;
         typedef optional<WalletPropertyEntry>                             oWalletPropertyEntry;
@@ -251,6 +255,7 @@ namespace hsrcore {
         typedef optional<WalletContactEntry>                              oWalletContactEntry;
         typedef optional<WalletTransactionEntry>                          oWalletTransactionEntry;
         typedef optional<WalletSettingEntry>                              oWalletSettingEntry;
+		typedef optional<WalletMultisigBalanceId>						oWalletMultisigBalanceId;
 
         struct GenericWalletEntry
         {
@@ -351,6 +356,7 @@ FC_REFLECT_ENUM(hsrcore::wallet::WalletEntryTypeEnum,
     (contact_entry_type)
     (property_entry_type)
     (setting_entry_type)
+	(multisig_balance_id_type)
     )
 
     FC_REFLECT_ENUM(hsrcore::wallet::PropertyEnum,
@@ -436,6 +442,8 @@ FC_REFLECT_ENUM(hsrcore::wallet::WalletEntryTypeEnum,
     (memo)
 	(from_contract_balance)
 	(to_contract_balance)
+	(from_multisig_address)
+	(to_multisig_address)
     (memo_from_account)
     )
 

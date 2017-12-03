@@ -340,6 +340,36 @@ namespace hsrcore {
                 return fc::ripemd160();
             } FC_CAPTURE_AND_RETHROW()
         }
+		int32_t ChainInterface::get_current_production_info(bool is_coinstake)const
+		{/*
+			pos_count = 10,
+			pos_previous_cache = 11,
+			pow_count = 12,
+			pow_previous_cache=13*/
+			try {
+				PropertyIdType propcount;
+				if (is_coinstake)
+				{
+					propcount = PropertyIdType::pos_count;
+				}
+				else
+				{
+					propcount = PropertyIdType::pow_count;
+				}
+
+				const oPropertyEntry entry = get_property_entry(propcount);
+				if (entry.valid())
+				{
+					int32_t temp_count = entry->value.as<int32_t>();
+					
+					return temp_count;
+					
+				}
+				return -1;
+				
+				
+			} FC_CAPTURE_AND_RETHROW()
+		}
 
         void ChainInterface::set_statistics_enabled(const bool enabled)
         {

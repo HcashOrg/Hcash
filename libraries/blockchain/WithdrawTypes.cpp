@@ -57,11 +57,19 @@ namespace hsrcore {
         BalanceIdType WithdrawCondition::get_address()const
         {
 			if (balance_type == withdraw_common_type)
+			{
+				if (type == withdraw_multisig_type)
+				{
+					return Address(*this, AddressType::multisig_address);
+				}
 				return Address(*this);
+			}
+				
 			else if (balance_type == withdraw_contract_type)
 				return Address(*this, AddressType::contract_address);
 			else if (balance_type == withdraw_margin_type)
 				return Address(*this, AddressType::contract_address);
+			
         }
 
         set<Address> WithdrawCondition::owners()const

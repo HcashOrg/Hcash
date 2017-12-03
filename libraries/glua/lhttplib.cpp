@@ -162,7 +162,7 @@ static int lualib_http_request(lua_State *L)
 	auto headers_table_value = lua_type_to_storage_value_type(L, 4);
 	if(headers_table_value.type != GluaStorageValueType::LVALUE_TABLE)
 	{
-		global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "headers must be table");
+		global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "headers must be table");
 		return 0;
 	}
 	*/
@@ -335,7 +335,7 @@ static int lualib_http_on_request_data(lua_State *L)
 	// TODO
 	if (lua_gettop(L) < 2 || !lua_isuserdata(L, 1) && !lua_islightuserdata(L, 2))
 	{
-		global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR, "http.on_request_data need arguments (socket: TcpSocket, handler: Function)");
+		global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR, "http.on_request_data need arguments (socket: TcpSocket, handler: Function)");
 		return 0;
 	}
 	auto *socket = (TcpSocket*) lua_touserdata(L, 1);
@@ -445,7 +445,7 @@ static int lualib_http_accept_async(lua_State *L)
 {
 	if (lua_gettop(L) < 2 || !lua_islightuserdata(L, 1) || !lua_isfunction(L, 2))
 	{
-		global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR,
+		global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR,
 			"http.accept_async need arguments (server: HttpServer, handler: Function)");
 		return 0;
 	}
@@ -459,7 +459,7 @@ static int lualib_http_start_io_loop(lua_State *L)
 {
 	if (lua_gettop(L) < 1 || !lua_islightuserdata(L, 1))
 	{
-		global_glua_chain_api->throw_exception(L, THINKYOUNG_API_SIMPLE_ERROR,
+		global_glua_chain_api->throw_exception(L, HSRCORE_API_SIMPLE_ERROR,
 			"http.start_io_loop need arguments (server: HttpServer)");
 		return 0;
 	}

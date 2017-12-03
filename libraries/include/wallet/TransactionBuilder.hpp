@@ -64,6 +64,8 @@ namespace hsrcore {
             ///Map of account address to key owning that account's market transactions
             std::map<blockchain::Address, PublicKeyType>                               order_keys;
 
+			std::string																   memo_message;
+
 
 
 
@@ -217,6 +219,12 @@ namespace hsrcore {
                 uint32_t m,
                 const vector<Address>& addresses);
 
+			TransactionBuilder& deposit_asset_to_multisig(
+				const Asset& amount,
+				const string& from_name,
+				uint32_t m,
+				const set<Address>& addresses);
+
             TransactionBuilder& withdraw_from_balance(const BalanceIdType& from,
                 const ShareType amount);
 
@@ -304,4 +312,4 @@ FC_REFLECT_ENUM(hsrcore::wallet::VoteStrategy,
     (vote_random)
     (vote_recommended)
     )
-    FC_REFLECT(hsrcore::wallet::TransactionBuilder, (transaction_entry)(required_signatures)(outstanding_balances))
+    FC_REFLECT(hsrcore::wallet::TransactionBuilder, (transaction_entry)(required_signatures)(outstanding_balances)(memo_message))

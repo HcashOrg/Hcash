@@ -56,7 +56,7 @@ static const char* reader(lua_State *L, void *ud, size_t *size)
 static void l_fatal(lua_State *L, const char *data)
 {
     const char *msg = lua_pushfstring(L, "fatal error %s", data);
-    global_glua_chain_api->throw_exception(L, THINKYOUNG_API_COMPILE_ERROR, msg);
+    global_glua_chain_api->throw_exception(L, HSRCORE_API_COMPILE_ERROR, msg);
     hsrcore::lua::lib::notify_lua_state_stop(L);
 }
 
