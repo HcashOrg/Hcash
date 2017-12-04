@@ -45,7 +45,7 @@ LINK_DIRECTORIES( ${Boost_LIBRARY_DIR}
         "dependence/fc"
         "dependence/leveldb"
         "dependence/miniupnp/miniupnpc"
-        "dependence/openssl-1.0.2k"
+        "dependence/openssl1.0.2"
         "dependence/fc/vendor/secp256k1-zkp/src/project_secp256k1-build/.libs"
         "."
         "libraries/api"
