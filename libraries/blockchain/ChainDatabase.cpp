@@ -2684,6 +2684,7 @@ namespace hsrcore {
 			int64_t nTargetPerSpacing = HSR_PRODUCTE_BLOCK_INTERAL;
 			int64_t first_block_number = block_header.block_num - HSR_ADJUST_DIFFICULTY_INTERAL;
 			int64_t first_block_num[2] = { -1,-1 }, end_block_num[2] = {-1,-1};
+			int32_t blockcount[2] = {0,0};
 			BlockHeader first_block[2], end_block[2];
 			if (first_block_number == 0)
 				first_block_number = 1;
@@ -2694,7 +2695,9 @@ namespace hsrcore {
 				if (first_block_num[temp_header.is_coinstake] == -1)
 				{
 					first_block[temp_header.is_coinstake] = temp_header;
+					first_block_num[temp_header.is_coinstake] = temp_header.block_num;
 				}
+				blockcount[temp_header.is_coinstake]++;
 				end_block_num[temp_header.is_coinstake] = temp_header.block_num;
 				end_block[temp_header.is_coinstake] = temp_header;
 			}
@@ -2710,24 +2713,15 @@ namespace hsrcore {
 				int64_t nProductionCount = 0;
 				int64_t nTargetSpacing = 0;
 				int64_t nActualSpacing = 0;
-				if (first_block_num[i] == -1 || end_block_num[i] == -1)
+				if (blockcount[i]<10)
 				{
-					nTargetSpacing = 10;
-					nActualSpacing = 1;
+					nTargetSpacing = 1;
+					nActualSpacing = 10;
 				}
 				else
 				{
-					nProductionCount = end_block[i].block_num - first_block[i].block_num;
-					if (nProductionCount == 0)
-					{
-						nTargetSpacing = 10;
-						nActualSpacing = 1;
-					}
-					else
-					{
-						nTargetSpacing = nTargetPerSpacing * nProductionCount;
-						nActualSpacing = (end_block[i].timestamp - first_block[i].timestamp).to_seconds();
-					}
+					nTargetSpacing = nTargetPerSpacing * blockcount[i];
+					nActualSpacing = (end_block[i].timestamp - first_block[i].timestamp).to_seconds();
 				}
 
 				if (nActualSpacing > nTargetSpacing * 10)

@@ -33,20 +33,20 @@ set(Boost_LIBRARY_DIR  "/usr/lib/x86_64-linux-gnu")
 
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} 
         "libraries/include"
-        "../fc-20171116formal/include"
-        "../leveldb/include"
-        "../miniupnp"
-        "../openssl-1.0.2k/include"
-	"../db-5.3.28.NC/build_unix"
+        "dependence/fc/include"
+        "dependence/leveldb/include"
+        "dependence/miniupnp"
+        "dependence/openssl1.0.2/include"
+	"dependence/db-5.3.28.NC/build_unix"
 	"libraries/hshare"
 )
 
 LINK_DIRECTORIES( ${Boost_LIBRARY_DIR}
-        "../fc-20171116formal"
-        "../leveldb"
-        "../miniupnp/miniupnpc"
-        "../openssl-1.0.2k"
-        "../fc-20171116formal/vendor/secp256k1-zkp/src/project_secp256k1-build/.libs"
+        "dependence/fc"
+        "dependence/leveldb"
+        "dependence/miniupnp/miniupnpc"
+        "dependence/openssl1.0.2"
+        "dependence/fc/vendor/secp256k1-zkp/src/project_secp256k1-build/.libs"
         "."
         "libraries/api"
         "libraries/blockchain"
@@ -61,7 +61,7 @@ LINK_DIRECTORIES( ${Boost_LIBRARY_DIR}
         "libraries/utilities"
         "libraries/wallet"
 	"libraries/hshare"
-	"../db-5.3.28.NC/build_unix"
+	"dependence/db-5.3.28.NC/build_unix"
 )
 
 set(SOURCE_FILES
@@ -73,4 +73,4 @@ add_library(all ${API_SRC} ${BLOCKCHAIN_SRC} ${CLI_SRC} ${CLIENT_SRC} ${DB_SRC} 
 
 add_executable(hsrcore ${SOURCE_FILES})
 
-TARGET_LINK_LIBRARIES(hsrcore liball.a libglua.a libfc.a libsecp256k1.a libleveldb.a libdb.a libminiupnpc.a ${Boost_LIBRARIES} libcrypto.a dl)
+TARGET_LINK_LIBRARIES(hsrcore liball.a libglua.a libfc.a libsecp256k1.a libleveldb.a libdb_cxx.a libminiupnpc.a ${Boost_LIBRARIES} libcrypto.a dl)
