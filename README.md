@@ -13,6 +13,70 @@ Development Process
 
 The Hcash is being developed by cryptography labs in one of the China’s most prestigious university as well as other famous universities in Australia. We will periodically update you with the progress on this over time, and we expected the first hardfork upgrade will happen soon at early Sept 2017. Thanks for your attention and stay tuned for the further update from Hcash dev team.
 
+Build on Linux
+-------------------
+
+update apt get and install addtional libraries
+```
+apt-get update
+apt-get install -y git cmake libboost1.58-dev libboost1.58-all-dev autoconf
+```
+download code
+```
+git clone https://github.com/HcashOrg/Hcash.git --recursive
+cd ./Hcash
+git submodule update --init --recursive
+```
+building openssl
+```
+cd dependence/openssl1.0.2/
+./config
+make -j
+sudo make install
+```
+building miniupnp
+```
+cd ../miniupnp/miniupnpc
+cmake .
+make
+```
+building leveldb
+```
+cd ../../leveldb
+chmod u+x build_detect_platform
+make
+```
+building berkeleyDB
+```
+cd ../db-5.3.28.NC/build_unix/
+chmod u+x ../dist/configure
+../dist/configure --enable-cxx
+make -j
+```
+building fc
+```
+cd ../../fc
+export OPENSSL_ROOT_DIR=”/usr/local/ssl/”
+cmake .
+chmod u+x ./vendor/scrypt-jane/test-speed.sh
+chmod u+x ./vendor/scrypt-jane/test.sh
+chmod u+x ./vendor/cyoencode-1.0.2/src/build.sh
+chmod u+x ./vendor/secp256k1-zkp/configure
+chmod u+x ./vendor/secp256k1-zkp/autogen.sh
+cd ./vendor/secp256k1-zkp/
+./autogen.sh
+cd ../../
+make
+```
+building hsrcore
+```
+cd ../../
+cmake .
+make
+```
+
+
+
 License
 -------
 
