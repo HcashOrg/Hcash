@@ -73,4 +73,4 @@ add_library(all ${API_SRC} ${BLOCKCHAIN_SRC} ${CLI_SRC} ${CLIENT_SRC} ${DB_SRC} 
 
 add_executable(hsrcore ${SOURCE_FILES})
 
-TARGET_LINK_LIBRARIES(hsrcore liball.a libglua.a libfc.a libsecp256k1.a libleveldb.a libdb.a libminiupnpc.a ${Boost_LIBRARIES} libcrypto.a dl)
+TARGET_LINK_LIBRARIES(hsrcore liball.a libglua.a libfc.a libsecp256k1.a libleveldb.a libdb_cxx.a libminiupnpc.a ${Boost_LIBRARIES} libcrypto.a dl)
