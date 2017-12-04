@@ -117,7 +117,7 @@ namespace fc { namespace http {
 
 	  bool ClientAllowed(const boost::asio::ip::address& address, std::vector<std::string> allow_ips)
 	  {
-		  if (allow_ips.size() == 0)
+		if (allow_ips.size() == 0)
 			  return true;
 		  // Make sure that IPv4-compatible and IPv4-mapped IPv6 addresses are treated as IPv4 addresses
 		  if (address.is_v6()
@@ -150,7 +150,6 @@ namespace fc { namespace http {
           // clean up futures for any completed requests
 		  if (!ClientAllowed(boost::asio::ip::address::from_string(con->get_socket().remote_endpoint().get_address()), allow_ips))
 		  {
-			  printf("%s", (std::string)(con->get_socket().remote_endpoint().get_address()));
 			  con->get_socket().close();
 			  continue;
 		  }

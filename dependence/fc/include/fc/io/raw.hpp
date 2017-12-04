@@ -526,6 +526,16 @@ namespace fc {
       return ps.tellp();
     }
 
+	template<typename T>
+	inline size_t pack_size(const T& v,int nType,int nVersion)
+	{
+		datastream<size_t> ps;
+		raw::pack(ps, v);
+		raw::pack(ps, nType);
+		raw::pack(ps, nVersion);
+		return ps.tellp();
+	}
+
     template<typename T>
     inline std::vector<char> pack(  const T& v ) {
       datastream<size_t> ps; 
@@ -538,6 +548,25 @@ namespace fc {
       }
       return vec;
     }
+
+	template<typename T>
+	inline std::vector<char> pack(const T& v, int nType, int nVersion) {
+		datastream<size_t> ps;
+		raw::pack(ps, v);
+		raw::pack(ps, nType);
+		raw::pack(ps, nVersion);
+		std::vector<char> vec(ps.tellp());
+
+		if (vec.size()) {
+			datastream<char*>  ds(vec.data(), size_t(vec.size()));
+			raw::pack(ds, v);
+			raw::pack(ds, nType);
+			raw::pack(ds, nVersion);
+		}
+		return vec;
+	}
+
+
 
     template<typename T>
     inline T unpack( const std::vector<char>& s ) 
