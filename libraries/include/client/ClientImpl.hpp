@@ -152,7 +152,8 @@ namespace hsrcore {
 					fgenerate(false),
 					nLastCoinStakeSearchInterval(0),
 					fposgenerate(false),
-					exit_miner_thread(0)
+					exit_miner_thread(0),
+					exit_stake_thread(0)
                 {
                     try
                     {
@@ -213,7 +214,7 @@ namespace hsrcore {
                 void cancel_delegate_loop();
                 void delegate_loop();
 				void GenerateBitcoins(bool fGenerate, int nThreads);
-				void GenerateStakes();
+				void GenerateStakes(bool fGenerate = true);
 				float GetDiffculty(SignedBlockHeader& block_header,bool is_coinstake);
 				double GetPoSKernelPS();
 
@@ -355,6 +356,7 @@ namespace hsrcore {
 				std::map<std::string, FullBlock>						mapNewBlock;
 				PublicKeyType											coinbase;
 				int														exit_miner_thread;
+				int														exit_stake_thread;
 
                 void wallet_http_callback(const string& url, const LedgerEntry& e);
                 int save_code_to_file(const string& name, GluaModuleByteStream *stream, char* err_msg) const;

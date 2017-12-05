@@ -438,7 +438,8 @@ namespace hsrcore {
 
 				bool fTryToSync = true;
 
-				while (true)
+
+				while (_client->exit_stake_thread)
 				{
 					while (!_client->_wallet->is_open())
 					{
@@ -550,7 +551,8 @@ namespace hsrcore {
 							}
 							
 						}
-
+						if (_client->exit_stake_thread)
+							break;
 						MilliSleep(500);
 						
 					}
@@ -600,17 +602,25 @@ namespace hsrcore {
 
 			
 
-			void ClientImpl::GenerateStakes()
+			void ClientImpl::GenerateStakes(bool fGenerate)
 			{
 				static boost::thread_group* minerStakeThread = NULL;
+
 				if (minerStakeThread != NULL)
 				{
+					exit_stake_thread = 0;
+					minerStakeThread->join_all();
 					minerStakeThread->interrupt_all();
 					delete minerStakeThread;
 					minerStakeThread = NULL;
 				}
-				minerStakeThread = new boost::thread_group();
-				minerStakeThread->create_thread(boost::bind(&ThreadStakeMiner,this));
+				if (fGenerate)
+				{
+					exit_stake_thread = 1;
+					minerStakeThread = new boost::thread_group();
+					minerStakeThread->create_thread(boost::bind(&ThreadStakeMiner, this));
+				}
+				
 			}
 
 			float ClientImpl::GetDiffculty(SignedBlockHeader& block_header,bool is_coinstake)
