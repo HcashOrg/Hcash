@@ -56,7 +56,7 @@ make -j
 building fc
 ```
 cd ../../fc
-export OPENSSL_ROOT_DIR=”/usr/local/ssl/”
+export OPENSSL_ROOT_DIR="/usr/local/ssl/"
 cmake .
 chmod u+x ./vendor/scrypt-jane/test-speed.sh
 chmod u+x ./vendor/scrypt-jane/test.sh
