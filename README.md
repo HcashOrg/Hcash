@@ -16,47 +16,60 @@ The Hcash is being developed by cryptography labs in one of the China’s most p
 Build on Linux
 -------------------
 
-update apt get and install addtional libraries
+## update apt get and install addtional libraries
+
 ```
 apt-get update
 apt-get install -y git cmake libboost1.58-dev libboost1.58-all-dev autoconf
 ```
-download code
+
+## download code
+
 ```
 git clone https://github.com/HcashOrg/Hcash.git --recursive
 cd ./Hcash
 git submodule update --init --recursive
 ```
-building openssl
+
+## building openssl
+
 ```
 cd dependence/openssl1.0.2/
 ./config
 make -j
 sudo make install
 ```
-building miniupnp
+
+## building miniupnp
+
 ```
 cd ../miniupnp/miniupnpc
 cmake .
 make
 ```
-building leveldb
+
+## building leveldb
+
 ```
 cd ../../leveldb
 chmod u+x build_detect_platform
 make
 ```
-building berkeleyDB
+
+## building berkeleyDB
+
 ```
 cd ../db-5.3.28.NC/build_unix/
 chmod u+x ../dist/configure
 ../dist/configure --enable-cxx
 make -j
 ```
-building fc
+
+## building fc
+
 ```
 cd ../../fc
-export OPENSSL_ROOT_DIR="/usr/local/ssl/"
+export OPENSSL_ROOT_DIR=”/usr/local/ssl/”
 cmake .
 chmod u+x ./vendor/scrypt-jane/test-speed.sh
 chmod u+x ./vendor/scrypt-jane/test.sh
@@ -68,14 +81,108 @@ cd ./vendor/secp256k1-zkp/
 cd ../../
 make
 ```
-building hsrcore
+
+## building hsrcore
+
 ```
 cd ../../
 cmake .
 make
 ```
 
+Build on Mac
+-------------------
 
+
+## install homebrew
+
+```
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+```
+
+## install addtional libraries
+
+```
+brew update
+sudo xcode-select --install
+sudo xcodebuild -license accept
+brew install cmake
+brew install git
+brew link --overwrite git
+brew install boost@1.57
+brew install autoconf
+brew install automake
+brew install libtool
+```
+
+## download code
+
+```
+git clone https://github.com/HcashOrg/Hcash.git --recursive
+cd ./Hcash
+git submodule update --init --recursive
+```
+
+## building openssl
+
+```
+cd dependence/openssl1.0.2/
+./Configure darwin64-x86_64-cc
+make -j
+sudo make install
+```
+
+## building miniupnp
+
+```
+cd ../miniupnp/miniupnpc
+cmake .
+make
+```
+
+## building leveldb
+
+```
+cd ../../leveldb
+chmod u+x build_detect_platform
+make
+```
+
+## building berkeleyDB
+
+```
+cd ../db-5.3.28.NC/build_unix/
+chmod u+x ../dist/configure
+../dist/configure --enable-cxx
+make -j
+```
+if build error see https://lists.freebsd.org/pipermail/freebsd-current/2012-May/033615.html
+
+## building fc
+
+```
+cd ../../fc
+export OPENSSL_ROOT_DIR="/usr/local/ssl/"
+brew link boost\@1.57 --force
+cmake .
+chmod u+x ./vendor/scrypt-jane/test-speed.sh
+chmod u+x ./vendor/scrypt-jane/test.sh
+chmod u+x ./vendor/cyoencode-1.0.2/src/build.sh
+chmod u+x ./vendor/secp256k1-zkp/configure
+chmod u+x ./vendor/secp256k1-zkp/autogen.sh
+cd ./vendor/secp256k1-zkp/
+./autogen.sh
+cd ../../
+make
+```
+
+## building hsrcore
+```
+cd ../../
+cmake .
+make -j3
+make
+```
 
 License
 -------
