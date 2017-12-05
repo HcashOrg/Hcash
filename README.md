@@ -11,7 +11,7 @@ The UTXO-based blockchain system (e.g. Bitcoin) and account-based blockchain sys
 Development Process
 -------------------
 
-The Hcash is being developed by cryptography labs in one of the China’s most prestigious university as well as other famous universities in Australia. We will periodically update you with the progress on this over time, and we expected the first hardfork upgrade will happen soon at early Sept 2017. Thanks for your attention and stay tuned for the further update from Hcash dev team.
+The Hcash is being developed by cryptography labs in one of the China’s most prestigious university as well as other famous universities in Australia. We will periodically update you with the progress on this over time, and we expected the first release upgrade will happen soon at Dec 2017. Thanks for your attention and stay tuned for the further update from Hcash dev team.
 
 Build on Linux
 -------------------
