@@ -5,8 +5,28 @@ The official website of Hcash Https://h.cash
 
 What is Hcash?
 --------------
+### Introduction of Project Background
 
-The UTXO-based blockchain system (e.g. Bitcoin) and account-based blockchain system (e.g. Ethereum ) opened the door of a brand-new world for us. Despite facing some drawbacks along the way, the impressive success of Bitcoin and Ethereum has certainly proven the value of the blockchain technology and its massive potential in the future. Since 2015, there has been quite a few highly-promising distributed ledger systems which are not block-based blockchain technology turned up, such as DAG (Directed Acyclic Graph). With no doubt, a decentralized digital world is dawning and Bitcoin or Ethereum has the potential to become the fundamental currency in block-based blockchain system. IOTA or Byteball, on the other hand may fulfil a similar role in a system based upon DAG. Although all blockchain issued tokens can be traded on some exchange platform, they can only circulate within their own blockchain systems. We want to create a new decentralized platform, which will be the connecting point of the major blockchain systems, regardless the block-based or blockless-based blockchain system, hence allowing value and information circulate smoothly within different blockchain system. We call it “HyperCash” or Hcash in short.
+After the implementation of Hcash, it has been expanding Hcash ecosystem positively. After upgrading the main chain, Hcash ecosystem will reach a brand new phrase. After upgrading, Hcash will allow a variety of projects to issue blockchain assets on its main chain. The safety and high efficiency of Hcash will build a solid foundation for the future ecosystem.
+
+Hcash aims at building a bridge of value communication. Through tireless efforts of Hcash teams, the anti-quantum scheme of Hcash has been completed. Hcash teams will continue to focus on technology development. Besides safety, Hcash technology team will work hard on the function and application of Hcash. The medium of blockchain system value and information exchange will be established, and be applied in finance, IoT, bit data and other areas. Having been developed in a high speed for a few months, Hcash has become a magnate with a top 30 market value in digital currency area. Thanks to the cooperation of Shanghai Jiao Tong University, The Hong Kong Polytechnic University and Monash University in Australia, Hcash also made huge progresses in technology.
+
+### Technology Advantages
+Hcash is very safe. It aims at building a bridge of value communication. On the basis of anti-quantum algorithm, Hcash has the downward compatibility with ECDSA signature scheme, which means that when quantum computers are really popularized, the safety of Hcash and its cross-chain feature will make it the “Noah's ark” for almost all digital currencies. Hcash will lead most digital currencies to survive quantum computers’ attack, and keep them safe until their anti-quantum feature is completed or bear them directly on the main chain.
+
+Hcash chooses the Diffie-Hellman method prospectively, which enables the Key to pass insecure network safely; thus avoiding safety problems during transmission process and decreasing safety risks that are generated during the transmission process.
+
+Hcash is a double-chain of block chain and DAG system. It realized the interconnection of information and value that bases on or does not base on blockchain. Hcash acts as the medium here, and the Hcash platform itself is the carrier of cross-platform information exchange. A fully encrypted communication among Hcash clients can be realized at the basis of zero-knowledge proof.
+
+Intelligent contract is an indispensable part in digital currency ecosystem. Hcash puts a lot of efforts and develops the intelligent contract that is highly programmable and has a high load carrying capacity, which decreases the rate of problems such as ETH network congestion. The intelligent contract that uses C++11 and glua that are easy to program also make it easy for small-and-medium-sized enterprises to issue digital assets on Hcash conveniently, or to use as commercial private chain.
+
+Network congestion has always been the biggest problem that digital currency faces. Bitcoin and ETH has small handling capacity, which causes network congestion to happen frequently. However, Hcash is prepared for large-scale commercial use. After upgrade, Hcash will have a handling capacity as high as 500tps, which is 70 times higher than that of BTC (6.99). This builds a solid foundation for small-scale uses with high frequency after large-scale uses.
+
+Hcash will officially adopt the PoW+PoS mechanism in this upgrade. The mining processes of PoW and POS are organically combined to ensure the safety of the system. Besides, PoS lowers the threshold for participates and increases the number of deep participants. PoW can also attract geeks of digital currency to take part in Hcash’s ecosystem, which helps to open a new chapter for Hcash mining.
+
+We want to thank community participants for their support and attention of Hcash, and thank Hcash teams and laboratories around the world for their hard work on day and night. After changing the main chain, Hcash will continue to cooperate with global R&D teams and use top-end cryptography knowledge; thus make the technology strength of Hcash stay in the lead in cryptocurrency.
+
+
 
 Development Process
 -------------------
