@@ -22,7 +22,7 @@
  */
 #define HSR_PEER_DATABASE_RETRY_DELAY                   15 // seconds
 
-#define HSR_NET_PEER_HANDSHAKE_INACTIVITY_TIMEOUT       10
+#define HSR_NET_PEER_HANDSHAKE_INACTIVITY_TIMEOUT       200
 
 #define HSR_NET_PEER_DISCONNECT_TIMEOUT                 20
 
