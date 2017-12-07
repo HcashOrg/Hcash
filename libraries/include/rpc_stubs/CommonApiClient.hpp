@@ -268,8 +268,8 @@ namespace hsrcore {
             MiningDifficulty get_difficulty() override;
             bool set_generate(bool fGenerate, uint32_t nThreads = fc::json::from_string("-1").as<uint32_t>()) override;
             MiningWorkPackage get_work() override;
-            bool submit_block(const std::string& HashNoNonce, uint64_t Nonce, uint64_t Extra_Nonce) override;
-            bool submit_blockex(const std::string& data) override;
+            hsrcore::blockchain::BlockIdType submit_block(const std::string& HashNoNonce, uint64_t Nonce, uint64_t Extra_Nonce) override;
+            hsrcore::blockchain::BlockIdType submit_blockex(const std::string& data) override;
             bool set_coinbase(const std::string& account_name) override;
             StakingInfo get_staking_info() override;
             fc::path compile_script(const fc::path& filename) const override;

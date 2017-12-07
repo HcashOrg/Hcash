@@ -8184,7 +8184,7 @@ namespace hsrcore {
                 FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 3 (Extra_Nonce)");
             uint64_t Extra_Nonce = parameters[2].as<uint64_t>();
 
-            bool result = get_client()->submit_block(HashNoNonce, Nonce, Extra_Nonce);
+            hsrcore::blockchain::BlockIdType result = get_client()->submit_block(HashNoNonce, Nonce, Extra_Nonce);
             return fc::variant(result);
         }
 
@@ -8206,7 +8206,7 @@ namespace hsrcore {
                 FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'Extra_Nonce'");
             uint64_t Extra_Nonce = parameters["Extra_Nonce"].as<uint64_t>();
 
-            bool result = get_client()->submit_block(HashNoNonce, Nonce, Extra_Nonce);
+            hsrcore::blockchain::BlockIdType result = get_client()->submit_block(HashNoNonce, Nonce, Extra_Nonce);
             return fc::variant(result);
         }
 
@@ -8222,7 +8222,7 @@ namespace hsrcore {
                 FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 1 (data)");
             std::string data = parameters[0].as<std::string>();
 
-            bool result = get_client()->submit_blockex(data);
+            hsrcore::blockchain::BlockIdType result = get_client()->submit_blockex(data);
             return fc::variant(result);
         }
 
@@ -8238,7 +8238,7 @@ namespace hsrcore {
                 FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'data'");
             std::string data = parameters["data"].as<std::string>();
 
-            bool result = get_client()->submit_blockex(data);
+            hsrcore::blockchain::BlockIdType result = get_client()->submit_blockex(data);
             return fc::variant(result);
         }
 
@@ -14595,14 +14595,14 @@ namespace hsrcore {
                 // register method submit_block
                 hsrcore::api::MethodData submit_block_method_metadata{ "submit_block", nullptr,
                     /* description */ "submit block!",
-                    /* returns */ "bool",
+                    /* returns */ "block_id_type",
                     /* params: */{
                         {"HashNoNonce", "std::string", hsrcore::api::required_positional, fc::ovariant()},
                         {"Nonce", "uint64_t", hsrcore::api::required_positional, fc::ovariant()},
                         {"Extra_Nonce", "uint64_t", hsrcore::api::required_positional, fc::ovariant()}
                           },
                     /* prerequisites */ (hsrcore::api::MethodPrerequisites) 4,
-                    /* detailed description */ "submit block!\n\nParameters:\n  HashNoNonce (std::string, required): blockchain no nonce hash\n  Nonce (uint64_t, required): blockchain nonce\n  Extra_Nonce (uint64_t, required): blockchain extra nonce\n\nReturns:\n  bool\n",
+                    /* detailed description */ "submit block!\n\nParameters:\n  HashNoNonce (std::string, required): blockchain no nonce hash\n  Nonce (uint64_t, required): blockchain nonce\n  Extra_Nonce (uint64_t, required): blockchain extra nonce\n\nReturns:\n  block_id_type\n",
                     /* aliases */ {}, true};
                 store_method_metadata(submit_block_method_metadata);
             }
@@ -14611,12 +14611,12 @@ namespace hsrcore {
                 // register method submit_blockex
                 hsrcore::api::MethodData submit_blockex_method_metadata{ "submit_blockex", nullptr,
                     /* description */ "submit block!",
-                    /* returns */ "bool",
+                    /* returns */ "block_id_type",
                     /* params: */{
                         {"data", "std::string", hsrcore::api::required_positional, fc::ovariant()}
                           },
                     /* prerequisites */ (hsrcore::api::MethodPrerequisites) 4,
-                    /* detailed description */ "submit block!\n\nParameters:\n  data (std::string, required): blockchain no nonce hash\n\nReturns:\n  bool\n",
+                    /* detailed description */ "submit block!\n\nParameters:\n  data (std::string, required): blockchain no nonce hash\n\nReturns:\n  block_id_type\n",
                     /* aliases */ {}, true};
                 store_method_metadata(submit_blockex_method_metadata);
             }

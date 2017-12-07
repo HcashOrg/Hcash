@@ -7291,7 +7291,7 @@ namespace hsrcore {
             FC_RETHROW_EXCEPTIONS(warn, "")
         }
 
-        bool CommonApiClient::submit_block(const std::string& HashNoNonce, uint64_t Nonce, uint64_t Extra_Nonce)
+        hsrcore::blockchain::BlockIdType CommonApiClient::submit_block(const std::string& HashNoNonce, uint64_t Nonce, uint64_t Extra_Nonce)
         {
             ilog("received RPC call: submit_block(${HashNoNonce}, ${Nonce}, ${Extra_Nonce})", ("HashNoNonce", HashNoNonce)("Nonce", Nonce)("Extra_Nonce", Extra_Nonce));
             hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
@@ -7313,7 +7313,7 @@ namespace hsrcore {
             } execution_time_logger;
             try
             {
-                bool result =             get_impl()->submit_block(HashNoNonce, Nonce, Extra_Nonce);
+                hsrcore::blockchain::BlockIdType result =             get_impl()->submit_block(HashNoNonce, Nonce, Extra_Nonce);
                 if( call_id != 0 )
                     glog->log_call_finished( call_id, this, "submit_block", args, fc::variant(result) );
 
@@ -7322,7 +7322,7 @@ namespace hsrcore {
             FC_RETHROW_EXCEPTIONS(warn, "")
         }
 
-        bool CommonApiClient::submit_blockex(const std::string& data)
+        hsrcore::blockchain::BlockIdType CommonApiClient::submit_blockex(const std::string& data)
         {
             ilog("received RPC call: submit_blockex(${data})", ("data", data));
             hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
@@ -7342,7 +7342,7 @@ namespace hsrcore {
             } execution_time_logger;
             try
             {
-                bool result =             get_impl()->submit_blockex(data);
+                hsrcore::blockchain::BlockIdType result =             get_impl()->submit_blockex(data);
                 if( call_id != 0 )
                     glog->log_call_finished( call_id, this, "submit_blockex", args, fc::variant(result) );
 

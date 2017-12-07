@@ -2139,17 +2139,17 @@ namespace hsrcore {
              * @param Nonce blockchain nonce (uint64_t, required)
              * @param Extra_Nonce blockchain extra nonce (uint64_t, required)
              *
-             * @return bool
+             * @return block_id_type
              */
-            virtual bool submit_block(const std::string& HashNoNonce, uint64_t Nonce, uint64_t Extra_Nonce) = 0;
+            virtual hsrcore::blockchain::BlockIdType submit_block(const std::string& HashNoNonce, uint64_t Nonce, uint64_t Extra_Nonce) = 0;
             /**
              * submit block!.
              *
              * @param data blockchain no nonce hash (std::string, required)
              *
-             * @return bool
+             * @return block_id_type
              */
-            virtual bool submit_blockex(const std::string& data) = 0;
+            virtual hsrcore::blockchain::BlockIdType submit_blockex(const std::string& data) = 0;
             /**
              * set coinbase !.
              *

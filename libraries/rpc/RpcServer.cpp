@@ -1357,7 +1357,11 @@ namespace hsrcore {
                         json_con->exec().on_complete([this, receipt, sock](fc::exception_ptr e){
                             ilog("json_con exited");
                             sock->close();
-                            _open_json_connections.erase(receipt.first);
+							if (_open_json_connections.size() > 0)
+							{
+								_open_json_connections.erase(receipt.first);
+							}
+                            
                             if (e)
                                 elog("Connection exited with error: ${error}", ("error", e->what()));
                         });

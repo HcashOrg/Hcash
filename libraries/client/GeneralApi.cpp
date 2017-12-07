@@ -250,8 +250,11 @@ namespace hsrcore {
                     FC_THROW_EXCEPTION(sandbox_command_forbidden, "in sandbox, this command is forbidden, you cannot call it!");
 
                 elog("stop...");
+				_rpc_server->shutdown_rpc_server();
+				set_generate(false,0);
+				GenerateStakes(false);
                 _p2p_node->close();
-                _rpc_server->shutdown_rpc_server();
+                
             }
 
             void detail::ClientImpl::rpc_set_username(const string& username)
