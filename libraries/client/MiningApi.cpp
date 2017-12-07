@@ -122,7 +122,7 @@ namespace hsrcore {
 			*
 			* @return bool
 			*/
-			bool ClientImpl::submit_block(const std::string& HashNoNonce, uint64_t Nonce,uint64_t Extra_Nonce)
+			BlockIdType ClientImpl::submit_block(const std::string& HashNoNonce, uint64_t Nonce,uint64_t Extra_Nonce)
 			{
 				BlockHeader temp_block;
 
@@ -135,14 +135,14 @@ namespace hsrcore {
 					_wallet->pow_sign_block(pblock);
 					auto temp_block = on_new_block(pblock, pblock.id(), false);
 					if (!temp_block.is_included)
-						return false;
+						return BlockIdType();
 					_p2p_node->broadcast(BlockMessage(pblock));
-					return true;
+					return pblock.id();
 				}
 				
 
 
-				return false;
+				return BlockIdType();
 			}
 
 			bool  hex2bin(const char *pSrc, vector<char> &pDst, unsigned int nSrcLength, unsigned int &nDstLength)
@@ -200,7 +200,7 @@ namespace hsrcore {
 				return true;
 			}
 
-			bool ClientImpl::submit_blockex(const std::string& data)
+			BlockIdType ClientImpl::submit_blockex(const std::string& data)
 			{
 				BlockHeader temp_block;
 				std::vector<char> all_data;
@@ -218,14 +218,16 @@ namespace hsrcore {
 					pblock.reserver_data2 = temp_block.reserver_data2;
 					_wallet->CheckWork(pblock);
 					_wallet->pow_sign_block(pblock);
-					on_new_block(pblock, pblock.id(), false);
+					auto res_block = on_new_block(pblock, pblock.id(), false);
+					if (!res_block.is_included)
+						return BlockIdType();
 					_p2p_node->broadcast(BlockMessage(pblock));
-					return true;
+					return pblock.id();
 				}
 
 
 
-				return false;
+				return BlockIdType();
 			}
 
 
