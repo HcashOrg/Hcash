@@ -18,12 +18,12 @@
 #define HSR_ADDRESS_PREFIX                                  "H"
 #define HSR_BLOCKCHAIN_SYMBOL                               "HSR"
 #define HSR_BLOCKCHAIN_NAME                                 "HSR"
-#define HSR_BLOCKCHAIN_DESCRIPTION                          "HsrerPay"
+#define HSR_BLOCKCHAIN_DESCRIPTION                          "hcash main network"
 			
 #define HSR_BLOCKCHAIN_PRECISION                            100000000
 
 #define HSR_BLOCKCHAIN_MAX_UIA_MARKET_FEE                   10000
-#define HSR_BLOCKCHAIN_BLOCK_INTERVAL_SEC                   int64_t(10)
+#define HSR_BLOCKCHAIN_BLOCK_INTERVAL_SEC                   int64_t(60)
 #define HSR_BLOCKCHAIN_BLOCKS_PER_HOUR                      ((60*60)/HSR_BLOCKCHAIN_BLOCK_INTERVAL_SEC)
 #define HSR_BLOCKCHAIN_BLOCKS_PER_DAY                       (HSR_BLOCKCHAIN_BLOCKS_PER_HOUR*int64_t(24))
 #define HSR_BLOCKCHAIN_BLOCKS_PER_YEAR                      (HSR_BLOCKCHAIN_BLOCKS_PER_DAY*int64_t(365))
@@ -55,7 +55,7 @@
 #define HSR_STAKE_TIMESTAMP_MASK							15
 #define POW_PROTOCOL_VERSION								80000
 #define HSR_MIN_CHANGE_BALANCE_UPDATE_TIME					2 * HSR_BLOCKCHAIN_PRECISION
-#define HSR_POS_BALANCE_PRODUCTE_INTERAL					30
+#define HSR_POS_BALANCE_PRODUCTE_INTERAL					50
 
 /**
  *  The maximum amount that can be issued for user assets.
@@ -101,7 +101,7 @@
 // TODO: This stuff only matters for propagation throttling; should go somewhere else
 #define HSR_BLOCKCHAIN_DEFAULT_RELAY_FEE                    1 // XTS
 #define HSR_BLOCKCHAIN_MAX_TRX_PER_SECOND                   1000  // (1000)
-#define HSR_BLOCKCHAIN_MAX_PENDING_QUEUE_SIZE               10000 // (HSR_BLOCKCHAIN_MAX_TRX_PER_SECOND * HSR_BLOCKCHAIN_BLOCK_INTERVAL_SEC)
+#define HSR_BLOCKCHAIN_MAX_PENDING_QUEUE_SIZE               15000 // (HSR_BLOCKCHAIN_MAX_TRX_PER_SECOND * HSR_BLOCKCHAIN_BLOCK_INTERVAL_SEC)
 
 #define HSR_BLOCKCHAIN_REVALIDATE_MAX_TRX_COUNT             (HSR_BLOCKCHAIN_MAX_TRX_PER_SECOND * HSR_BLOCKCHAIN_BLOCK_INTERVAL_SEC)
 

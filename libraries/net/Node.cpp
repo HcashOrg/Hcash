@@ -1324,9 +1324,9 @@ namespace hsrcore {
                     }
 
                 // timeout for any active peers is two block intervals
-                uint32_t active_disconnect_timeout = std::max<uint32_t>(5 * HSR_BLOCKCHAIN_BLOCK_INTERVAL_SEC / 2, 30);
+                uint32_t active_disconnect_timeout = std::max<uint32_t>(5 * HSR_BLOCKCHAIN_BLOCK_INTERVAL_SEC / 2, 300);
                 uint32_t active_send_keepalive_timeount = std::max<uint32_t>(active_disconnect_timeout / 2, 11);
-                uint32_t active_ignored_request_timeount = std::max<uint32_t>(HSR_BLOCKCHAIN_BLOCK_INTERVAL_SEC / 4, 10);
+                uint32_t active_ignored_request_timeount = std::max<uint32_t>(HSR_BLOCKCHAIN_BLOCK_INTERVAL_SEC / 4, 100);
                 fc::time_point active_disconnect_threshold = fc::time_point::now() - fc::seconds(active_disconnect_timeout);
                 fc::time_point active_send_keepalive_threshold = fc::time_point::now() - fc::seconds(active_send_keepalive_timeount);
                 fc::time_point active_ignored_request_threshold = fc::time_point::now() - fc::seconds(active_ignored_request_timeount);

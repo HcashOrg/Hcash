@@ -475,6 +475,7 @@ namespace hsrcore {
 
 					
 					try {
+						FullBlock pblock;
 						auto all_account_entrys = _client->_wallet->get_spendable_account_balance_entrys();
 						for (auto iter = all_account_entrys.begin(); iter != all_account_entrys.end(); ++iter)
 						{
@@ -495,7 +496,18 @@ namespace hsrcore {
 								{
 									const auto now = fc::time_point_sec(fc::time_point::now());
 									int64_t nFees;
-									FullBlock pblock(_client->_chain_db->generate_block(now, tempcoinbase, _client->_delegate_config,0, true));
+									if (pblock.previous == _client->_chain_db->get_head_block_id())
+									{
+										pblock.coin_base = tempcoinbase;
+										pblock.is_coinstake = 1;
+										pblock.is_multisig_account = 0;
+										pblock.timestamp = now;
+									}
+									else
+									{
+										pblock = _client->_chain_db->generate_block(now, tempcoinbase, _client->_delegate_config, 0, true);
+									}
+									
 									_client->nBlockSize = pblock.block_size();
 									_client->nBlockTx = pblock.user_transactions.size();
 
@@ -528,7 +540,19 @@ namespace hsrcore {
 
 									const auto now = fc::time_point_sec(fc::time_point::now());
 									int64_t nFees;
-									FullBlock pblock(_client->_chain_db->generate_block(now, tempcoinbase, _client->_delegate_config, 1, true));
+
+									if (pblock.previous == _client->_chain_db->get_head_block_id())
+									{
+										pblock.coin_base = tempcoinbase;
+										pblock.is_coinstake = 1;
+										pblock.is_multisig_account = 1;
+										pblock.timestamp = now;
+									}
+									else
+									{
+										pblock = _client->_chain_db->generate_block(now, tempcoinbase, _client->_delegate_config, 1, true);
+									}
+									//FullBlock pblock(_client->_chain_db->generate_block(now, tempcoinbase, _client->_delegate_config, 1, true));
 									_client->nBlockSize = pblock.block_size();
 									_client->nBlockTx = pblock.user_transactions.size();
 
@@ -551,7 +575,7 @@ namespace hsrcore {
 							}
 							
 						}
-						if (_client->exit_stake_thread)
+						if (!_client->exit_stake_thread)
 							break;
 						MilliSleep(500);
 						
