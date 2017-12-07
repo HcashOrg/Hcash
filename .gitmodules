@@ -1,3 +1,6 @@
 [submodule "dependence/openssl1.0.2"]
 	path = dependence/openssl1.0.2
 	url = https://github.com/openssl/openssl.git
+[submodule "docs"]
+	path = docs
+	url = https://github.com/yusun/hcashdocument.git

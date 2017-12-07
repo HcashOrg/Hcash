@@ -1181,15 +1181,15 @@ namespace hsrcore {
             fc::variant result = get_json_connection()->async_call("get_work", std::vector<fc::variant>{}).wait();
             return result.as<MiningWorkPackage>();
         }
-        bool CommonApiRpcClient::submit_block(const std::string& HashNoNonce, uint64_t Nonce, uint64_t Extra_Nonce)
+        hsrcore::blockchain::BlockIdType CommonApiRpcClient::submit_block(const std::string& HashNoNonce, uint64_t Nonce, uint64_t Extra_Nonce)
         {
             fc::variant result = get_json_connection()->async_call("submit_block", std::vector<fc::variant>{fc::variant(HashNoNonce), fc::variant(Nonce), fc::variant(Extra_Nonce)}).wait();
-            return result.as<bool>();
+            return result.as<hsrcore::blockchain::BlockIdType>();
         }
-        bool CommonApiRpcClient::submit_blockex(const std::string& data)
+        hsrcore::blockchain::BlockIdType CommonApiRpcClient::submit_blockex(const std::string& data)
         {
             fc::variant result = get_json_connection()->async_call("submit_blockex", std::vector<fc::variant>{fc::variant(data)}).wait();
-            return result.as<bool>();
+            return result.as<hsrcore::blockchain::BlockIdType>();
         }
         bool CommonApiRpcClient::set_coinbase(const std::string& account_name)
         {

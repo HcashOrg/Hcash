@@ -122,7 +122,7 @@ namespace hsrcore {
 			*
 			* @return bool
 			*/
-			bool ClientImpl::submit_block(const std::string& HashNoNonce, uint64_t Nonce,uint64_t Extra_Nonce)
+			BlockIdType ClientImpl::submit_block(const std::string& HashNoNonce, uint64_t Nonce,uint64_t Extra_Nonce)
 			{
 				BlockHeader temp_block;
 
@@ -135,14 +135,14 @@ namespace hsrcore {
 					_wallet->pow_sign_block(pblock);
 					auto temp_block = on_new_block(pblock, pblock.id(), false);
 					if (!temp_block.is_included)
-						return false;
+						return BlockIdType();
 					_p2p_node->broadcast(BlockMessage(pblock));
-					return true;
+					return pblock.id();
 				}
 				
 
 
-				return false;
+				return BlockIdType();
 			}
 
 			bool  hex2bin(const char *pSrc, vector<char> &pDst, unsigned int nSrcLength, unsigned int &nDstLength)
@@ -200,7 +200,7 @@ namespace hsrcore {
 				return true;
 			}
 
-			bool ClientImpl::submit_blockex(const std::string& data)
+			BlockIdType ClientImpl::submit_blockex(const std::string& data)
 			{
 				BlockHeader temp_block;
 				std::vector<char> all_data;
@@ -218,14 +218,16 @@ namespace hsrcore {
 					pblock.reserver_data2 = temp_block.reserver_data2;
 					_wallet->CheckWork(pblock);
 					_wallet->pow_sign_block(pblock);
-					on_new_block(pblock, pblock.id(), false);
+					auto res_block = on_new_block(pblock, pblock.id(), false);
+					if (!res_block.is_included)
+						return BlockIdType();
 					_p2p_node->broadcast(BlockMessage(pblock));
-					return true;
+					return pblock.id();
 				}
 
 
 
-				return false;
+				return BlockIdType();
 			}
 
 
@@ -475,6 +477,7 @@ namespace hsrcore {
 
 					
 					try {
+						FullBlock pblock;
 						auto all_account_entrys = _client->_wallet->get_spendable_account_balance_entrys();
 						for (auto iter = all_account_entrys.begin(); iter != all_account_entrys.end(); ++iter)
 						{
@@ -495,7 +498,18 @@ namespace hsrcore {
 								{
 									const auto now = fc::time_point_sec(fc::time_point::now());
 									int64_t nFees;
-									FullBlock pblock(_client->_chain_db->generate_block(now, tempcoinbase, _client->_delegate_config,0, true));
+									if (pblock.previous == _client->_chain_db->get_head_block_id())
+									{
+										pblock.coin_base = tempcoinbase;
+										pblock.is_coinstake = 1;
+										pblock.is_multisig_account = 0;
+										pblock.timestamp = now;
+									}
+									else
+									{
+										pblock = _client->_chain_db->generate_block(now, tempcoinbase, _client->_delegate_config, 0, true);
+									}
+									
 									_client->nBlockSize = pblock.block_size();
 									_client->nBlockTx = pblock.user_transactions.size();
 
@@ -528,7 +542,19 @@ namespace hsrcore {
 
 									const auto now = fc::time_point_sec(fc::time_point::now());
 									int64_t nFees;
-									FullBlock pblock(_client->_chain_db->generate_block(now, tempcoinbase, _client->_delegate_config, 1, true));
+
+									if (pblock.previous == _client->_chain_db->get_head_block_id())
+									{
+										pblock.coin_base = tempcoinbase;
+										pblock.is_coinstake = 1;
+										pblock.is_multisig_account = 1;
+										pblock.timestamp = now;
+									}
+									else
+									{
+										pblock = _client->_chain_db->generate_block(now, tempcoinbase, _client->_delegate_config, 1, true);
+									}
+									//FullBlock pblock(_client->_chain_db->generate_block(now, tempcoinbase, _client->_delegate_config, 1, true));
 									_client->nBlockSize = pblock.block_size();
 									_client->nBlockTx = pblock.user_transactions.size();
 
@@ -551,7 +577,7 @@ namespace hsrcore {
 							}
 							
 						}
-						if (_client->exit_stake_thread)
+						if (!_client->exit_stake_thread)
 							break;
 						MilliSleep(500);
 						

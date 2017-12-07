@@ -316,9 +316,9 @@ namespace hsrcore {
 
             fc::logger_config dlc;
 #ifdef HSR_TEST_NETWORK
-            dlc.level = fc::log_level::debug;
+            dlc.level = fc::log_level::error;
 #else
-            dlc.level = fc::log_level::warn;
+            dlc.level = fc::log_level::error;
 #endif
             dlc.name = "default";
             dlc.appenders.push_back("default");
@@ -327,9 +327,9 @@ namespace hsrcore {
 
             fc::logger_config dlc_client;
 #ifdef HSR_TEST_NETWORK
-            dlc_client.level = fc::log_level::debug;
+            dlc_client.level = fc::log_level::error;
 #else
-            dlc_client.level = fc::log_level::warn;
+            dlc_client.level = fc::log_level::error;
 #endif
             dlc_client.name = "client";
             dlc_client.appenders.push_back("default");
@@ -338,27 +338,27 @@ namespace hsrcore {
 
             fc::logger_config dlc_rpc;
 #ifdef HSR_TEST_NETWORK
-            dlc_rpc.level = fc::log_level::debug;
+            dlc_rpc.level = fc::log_level::error;
 #else
-            dlc_rpc.level = fc::log_level::warn;
+            dlc_rpc.level = fc::log_level::error;
 #endif
             dlc_rpc.name = "rpc";
             dlc_rpc.appenders.push_back("rpc");
 
             fc::logger_config dlc_blockchain;
 #ifdef HSR_TEST_NETWORK
-            dlc_blockchain.level = fc::log_level::debug;
+            dlc_blockchain.level = fc::log_level::error;
 #else
-            dlc_blockchain.level = fc::log_level::warn;
+            dlc_blockchain.level = fc::log_level::error;
 #endif
             dlc_blockchain.name = "blockchain";
             dlc_blockchain.appenders.push_back("blockchain");
 
             fc::logger_config dlc_p2p;
 #ifdef HSR_TEST_NETWORK
-            dlc_p2p.level = fc::log_level::debug;
+            dlc_p2p.level = fc::log_level::error;
 #else
-            dlc_p2p.level = fc::log_level::warn;
+            dlc_p2p.level = fc::log_level::error;
 #endif
             dlc_p2p.name = "p2p";
             dlc_p2p.appenders.push_back("p2p");
