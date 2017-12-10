@@ -115,13 +115,14 @@ namespace hshare
 
 	}
 
-	fc::ecc::private_key& changeHsharePrivkey(std::vector<unsigned char> hshare_privkey, bool isCompressed)
+	fc::ecc::private_key changeHsharePrivkey(std::vector<unsigned char> hshare_privkey, bool isCompressed)
 	{
 		unsigned char vch[32];
 		std::vector<char> temp_vch;
 		temp_vch.reserve(32);
 		convert_key(hshare_privkey, vch);
 		temp_vch.assign(vch, vch + 32);
+		
 
 		fc::ecc::private_key final_key = fc::variant(temp_vch).as<fc::ecc::private_key>();
 
@@ -129,7 +130,7 @@ namespace hshare
 	}
 
 
-	bool ReadKeyValue(CDataStream& ssKey, CDataStream& ssValue, std::string& strType, std::string& strErr, std::vector<std::string>& vwif)
+	bool ReadKeyValue(CDataStream& ssKey, CDataStream& ssValue, std::string& strType, std::string& strErr, std::vector<std::string>& vwif, set<std::string>& vKeyPool)
 	{
 		try
 		{
@@ -140,6 +141,26 @@ namespace hshare
 
 
 			ssKey >> strType;
+
+			if (strType == "pool")
+			{
+				int64_t temp_time;
+				int nversion;
+				std::vector<unsigned char> tempvchPubKey;
+				ssValue >> nversion;
+				ssValue >> temp_time;
+				ssValue >> tempvchPubKey;
+				fc::ecc::public_key vchPubKey;
+				vchPubKey = changeHsharePubkey(tempvchPubKey);
+				if (!vchPubKey.valid())
+				{
+					strErr = "Error reading wallet database: CPubKey corrupt";
+					return false;
+				}
+				vKeyPool.emplace(vchPubKey.to_base58());
+
+			}
+
 
 			if (strType == "key")
 			{
@@ -240,13 +261,15 @@ namespace hshare
 			printf("Error getting wallet database cursor\n");
 			return DB_CORRUPT;
 		}
-
+		set<std::string> vKeyPool;
+		std::vector<std::string> vAllWif;
 		while (true)
 		{
 			// Read next record
 			CDataStream ssKey(SER_DISK, CLIENT_VERSION);
 			CDataStream ssValue(SER_DISK, CLIENT_VERSION);
 			int ret = walletdb.ReadAtCursor(pcursor, ssKey, ssValue);
+			
 			if (ret == DB_NOTFOUND)
 				break;
 			else if (ret != 0)
@@ -258,8 +281,9 @@ namespace hshare
 			// Try to be tolerant of single corrupt records:
 			std::string strType, strErr;
 
-			if (!ReadKeyValue(ssKey, ssValue, strType, strErr, vwif))
+			if (!ReadKeyValue(ssKey, ssValue, strType, strErr, vAllWif, vKeyPool))
 			{
+				
 				// losing keys is considered a catastrophic error, anything else
 				// we assume the user can live with:
 				result = DB_CORRUPT;
@@ -267,8 +291,23 @@ namespace hshare
 			}
 			if (!strErr.empty())
 				printf("%s\n", strErr.c_str());
+
 		}
 		pcursor->close();
+		for (auto temp_str : vAllWif)
+		{
+			auto pkey = hsrcore::utilities::wif_to_key(temp_str);
+			if (pkey)
+			{
+				auto pPub = pkey->get_public_key();
+				if (!vKeyPool.count(pPub.to_base58()))
+				{
+					vwif.emplace_back(temp_str);
+				}
+			}
+			
+		}
+
 
 		return result;
 
