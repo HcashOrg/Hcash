@@ -112,6 +112,8 @@ boost::filesystem::path GetDataDir()
 	// value so we don't have to do memory allocations after that.
 
 	path = GetDefaultDataDir();
+	if(!fs::exists(path))
+		fs::create_directory(path);
 	path /= "hshareoldwallet";
 	fs::create_directory(path);
 
