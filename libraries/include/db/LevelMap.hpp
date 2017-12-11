@@ -61,6 +61,7 @@ namespace hsrcore {
                     // Given path must exist to succeed toNativeAnsiPath
                     fc::create_directories(dir);
                     //std::string ldbPath = dir.to_native_ansi_path();
+#ifdef WIN32
                     std::string curLocale = setlocale(LC_ALL, NULL); // curLocale = "C";
                     std::wstring ws = dir.wstring();
                     setlocale(LC_ALL, "chs");
@@ -72,6 +73,9 @@ namespace hsrcore {
                     std::string ldbPath(_Dest);
                     delete[]_Dest;
                     setlocale(LC_ALL, curLocale.c_str());
+#else
+					std::string ldbPath(dir.generic_string());
+#endif
                     ldb::DB* ndb = nullptr;
                     const auto ntrxstat = ldb::DB::Open(opts, ldbPath.c_str(), &ndb);
                     if (!ntrxstat.ok())
