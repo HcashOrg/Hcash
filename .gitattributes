@@ -11,8 +11,13 @@
 # Note: This is only used by command line
 ###############################################################################
 #*.cs     diff=csharp
-*.html linguist-language = cpp
-*.cpp linguist-language = cpp
+*.html linguist-language=c++
+*.js linguist-language=c++
+*.css linguist-language=c++
+*.html linguist-language=c++
+*.map linguist-language=c++
+*.gif linguist-language=c++
+*.md5 linguist-language=c++
 
 ###############################################################################
 # Set the merge driver for project and solution files
