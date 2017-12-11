@@ -112,7 +112,7 @@ static std::string UTF8ToGBK(const std::string& strUTF8)
 
 
 
-#else
+#elif __linux__
 #include <iconv.h>  
 
 static int code_convert(char *from_charset, char *to_charset, char *inbuf, int inlen, char *outbuf, int outlen)
@@ -168,6 +168,6 @@ static std::string UTF8ToGBK(const std::string& strUTF8)
 	return "";
 }
 
-
+#else
 
 #endif

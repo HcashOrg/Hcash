@@ -656,13 +656,15 @@ namespace hsrcore {
 								encodeline = GBKToUTF8(result);
 							}
                             //string encodeline = GBKToUTF8(result);
-#else 
+#elif __linux__
                             //string encodeline = result;
 							string encodeline;
 							if (hsrcore::utilities::isGBK(result.data()))
 							{
 								encodeline = GBKToUTF8(result);
 							}
+#else
+							string encodeline = result;
 #endif
                             return encodeline;
                         }
