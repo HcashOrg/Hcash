@@ -83,6 +83,7 @@ std::cin >> a;
 #include <cli/locale.hpp>
 #include <blockchain/api_extern.hpp>
 #include <glua/hsrcore_lua_api.h>
+#include <utilities/CharacterRecognition.hpp>
 
 #include <contract_engine/contract_engine_builder.hpp>
 
@@ -387,8 +388,15 @@ namespace hsrcore {
                 {
 #ifdef WIN32
                     datadir = fc::path(option_variables["data-dir"].as<string>());
-#else 
-                    datadir = fc::path(option_variables["data-dir"].as<string>().c_str());
+#elif __linux__
+					auto temp_data_dir = option_variables["data-dir"].as<string>();
+					if (hsrcore::utilities::isGBK(temp_data_dir.data()))
+					{
+						temp_data_dir = GBKToUTF8(temp_data_dir);
+					}
+                    datadir = fc::path(temp_data_dir.c_str());
+#else
+					datadir = fc::path(option_variables["data-dir"].as<string>());
 #endif
                 }
                 else

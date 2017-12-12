@@ -109,4 +109,65 @@ static std::string UTF8ToGBK(const std::string& strUTF8)
     return strTemp;
 }
 
+
+
+
+#elif __linux__
+#include <iconv.h>  
+
+static int code_convert(char *from_charset, char *to_charset, char *inbuf, int inlen, char *outbuf, int outlen)
+{
+	iconv_t cd;
+	int rc;
+	char **pin = &inbuf;
+	char **pout = &outbuf;
+	size_t temp_out = outlen;
+	size_t temp_in = inlen;
+
+	cd = iconv_open(to_charset, from_charset);
+	if (cd == 0)
+		return -1;
+	memset(outbuf, 0, outlen);
+	if (iconv(cd, pin, &temp_in, pout, &temp_out) == -1)
+		return -1;
+	outlen = temp_out;
+	iconv_close(cd);
+	return 0;
+}
+
+static int u2g(char *inbuf, int inlen, char *outbuf, int outlen)
+{
+	return code_convert("utf-8", "gb2312", inbuf, inlen, outbuf, outlen);
+}
+static int g2u(char *inbuf, size_t inlen, char *outbuf, size_t outlen)
+{
+	return code_convert("gb2312", "utf-8", inbuf, inlen, outbuf, outlen);
+}
+static std::string GBKToUTF8(const std::string& strGBK)
+{
+	int len = strGBK.size();
+	char* str1 = new char[len * 2 + 1];
+	int outlen = len * 2 + 1;
+	if (g2u((char*)strGBK.data(), len, str1, outlen) == 0)
+	{
+		std::string strTemp(str1);
+		return strTemp;
+	}
+	return "";
+}
+static std::string UTF8ToGBK(const std::string& strUTF8)
+{
+	int len = strUTF8.size();
+	char* str1 = new char[len * 2 + 1];
+	int outlen = len * 2 + 1;
+	if (u2g((char*)strUTF8.data(), len, str1, outlen) == 0)
+	{
+		std::string strTemp(str1);
+		return strTemp;
+	}
+	return "";
+}
+
+#else
+
 #endif
