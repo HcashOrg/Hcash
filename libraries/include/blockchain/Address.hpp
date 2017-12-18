@@ -111,6 +111,7 @@ FC_REFLECT_ENUM(hsrcore::blockchain::AddressType,
     (hsr_address)
     (contract_address)
     (script_id)
+	(multisig_address)
     )
 
     FC_REFLECT(hsrcore::blockchain::Address, (addr))
