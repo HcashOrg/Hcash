@@ -675,7 +675,7 @@ static LClosure *getcached(Proto *p, UpVal **encup, StkId base) {
 ** already black (which means that 'cache' was already cleared by the
 ** GC).
 */
-static void pushclosure(lua_State *L, Proto *p, UpVal **encup, StkId base,
+static void pushclosure(lua_State *L, Proto *p, UpVal **encup, int enc_nupvalues, StkId base,
     StkId ra) {
     int nup = p->sizeupvalues;
     Upvaldesc *uv = p->upvalues;
@@ -687,7 +687,16 @@ static void pushclosure(lua_State *L, Proto *p, UpVal **encup, StkId base,
         if (uv[i].instack)  /* upvalue refers to local variable? */
             ncl->upvals[i] = luaF_findupval(L, base + uv[i].idx);
         else  /* get upvalue from enclosing function */
-            ncl->upvals[i] = encup[uv[i].idx];
+		{
+			auto idx = uv[i].idx;
+			if (idx >= enc_nupvalues || idx < 0)
+			{
+				L->force_stopping = true;
+				lua_set_run_error(L, "upvalue index out of parent closure's upvalues size");
+				return;
+			}
+			ncl->upvals[i] = encup[idx];
+		}
         if (nullptr != ncl->upvals[i])
             ncl->upvals[i]->refcount++;
         /* new closure is white, so we do not need a barrier here */
@@ -1707,7 +1716,7 @@ newframe:  /* reentry point when frame changes (call/return) */
                 Proto *p = cl->p->p[p_index];
                 LClosure *ncl = getcached(p, cl->upvals, base);  /* cached closure */
                 if (ncl == nullptr)  /* no match? */
-                    pushclosure(L, p, cl->upvals, base, ra);  /* create a new one */
+                    pushclosure(L, p, cl->upvals, cl->nupvalues, base, ra);  /* create a new one */
                 else
                     setclLvalue(L, ra, ncl);  /* push cashed closure */
                 checkGC(L, ra + 1);
