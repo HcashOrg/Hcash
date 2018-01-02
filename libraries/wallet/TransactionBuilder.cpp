@@ -7,6 +7,8 @@
 #include <blockchain/Time.hpp>
 
 #include <fc/crypto/sha256.hpp>
+#include <utilities/StringEscape.hpp>
+#include <utilities/KeyConversion.hpp>
 
 using namespace hsrcore::wallet;
 using namespace hsrcore::wallet::detail;
@@ -538,7 +540,10 @@ WalletTransactionEntry& TransactionBuilder::sign()
                 ilog("@n unable to sign for address ${a}:\n${e}", ("a", address)("e", e.to_detail_string()));
             }
         }
-
+		if (trx.signatures.size() >= nrequired)
+		{
+			is_completed = true;
+		}
 
         return transaction_entry;
     } FC_CAPTURE_AND_RETHROW()
@@ -615,6 +620,16 @@ TransactionBuilder& TransactionBuilder::withdraw_from_balance(const BalanceIdTyp
             trx.withdraw(from, amount);
             for (const auto& owner : obalance->owners())
                 required_signatures.insert(owner);
+			if (obalance->condition.type == WithdrawConditionTypes::withdraw_multisig_type)
+			{
+				auto condition = obalance->condition.as<WithdrawWithMultisig>();
+				nrequired = condition.required;
+			}
+			else
+			{
+				nrequired = obalance->owners().size();
+			}
+			
         }
         else // We go ahead and try to use this balance ID as an owner
         {
@@ -624,9 +639,68 @@ TransactionBuilder& TransactionBuilder::withdraw_from_balance(const BalanceIdTyp
             trx.withdraw(balance.id(), amount);
             for (const auto& owner : balance.owners())
                 required_signatures.insert(owner);
+			if (obalance->condition.type == WithdrawConditionTypes::withdraw_multisig_type)
+			{
+				auto condition = obalance->condition.as<WithdrawWithMultisig>();
+				nrequired = condition.required;
+			}
+			else
+			{
+				nrequired = obalance->owners().size();
+			}
         }
         return *this;
     } FC_CAPTURE_AND_RETHROW((from)(amount))
+}
+
+
+TransactionBuilder& TransactionBuilder::receive_from_genesis_balance(const Address& from_address, const std::string from_redeem_script, Asset& amount)
+{
+	try {
+		// TODO ledger entries
+
+		auto condition = WithdrawCondition(WithdrawP2shMultisig(from_address));
+		auto temp_balance = BalanceEntry(condition);
+		auto obalance = _wimpl->_blockchain->get_balance_entry(temp_balance.id());
+		std::vector<char> redeem_data;
+		unsigned int data_len = 0;
+		if (obalance.valid())
+		{
+			amount.amount = obalance->balance;
+			amount.asset_id = obalance->asset_id();
+			hsrcore::utilities::hex2bin(from_redeem_script.data(), redeem_data, from_redeem_script.size(), data_len);
+			int required, total;
+			std::vector<fc::ecc::public_key> all_public_key;
+
+			bool ret = hsrcore::utilities::redeem_decode(redeem_data, required, total, all_public_key);
+			FC_ASSERT(ret, "invalid redeem script!");
+			trx.receive_from_genesis(obalance->id(), amount.amount, redeem_data);
+
+			for (const auto& owner : all_public_key)
+				required_signatures.insert(Address(owner));
+			this->nrequired = required;
+		}
+		else // We go ahead and try to use this balance ID as an owner
+		{
+			auto balances = _wimpl->_blockchain->get_balances_for_address(from_address);
+			FC_ASSERT(balances.size() > 0, "No balance with that ID or owner address!");
+			auto balance = balances.begin()->second;
+			amount.amount = balance.balance;
+			amount.asset_id = balance.asset_id();
+			hsrcore::utilities::hex2bin(from_redeem_script.data(), redeem_data, from_redeem_script.size(), data_len);
+			int required, total;
+			std::vector<fc::ecc::public_key> all_public_key;
+
+			bool ret = hsrcore::utilities::redeem_decode(redeem_data, required, total, all_public_key);
+			FC_ASSERT(ret, "invalid redeem script!");
+			trx.receive_from_genesis(balance.id(), amount.amount, redeem_data);
+
+			for (const auto& owner : all_public_key)
+				required_signatures.insert(Address(owner));
+			this->nrequired = required;
+		}
+		return *this;
+	} FC_CAPTURE_AND_RETHROW((from_address)(amount))
 }
 
 TransactionBuilder& TransactionBuilder::deposit_to_balance(const BalanceIdType& to,

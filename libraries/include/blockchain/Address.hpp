@@ -24,7 +24,8 @@ namespace hsrcore {
             hsr_address = 0,
             contract_address = 1,
             script_id = 2,
-			multisig_address = 3
+			multisig_address = 3,
+			old_multisig_address =4
         };
 
         struct WithdrawCondition;
@@ -52,6 +53,7 @@ namespace hsrcore {
             Address(const PtsAddress& pub); ///< converts to binary
             Address(const WithdrawCondition& condition, const AddressType& address_type = AddressType::hsr_address);
             Address(const PublicKeyType& pubkey, const AddressType& address_type = AddressType::hsr_address);
+			Address(const fc::ripemd160& ripemd_hash, const AddressType& address_type = AddressType::hsr_address);
             //Address(const PublicKeyType& pubkey, const fc::ripemd160& trxid);//用于合约地址
 
             /**
@@ -111,6 +113,7 @@ FC_REFLECT_ENUM(hsrcore::blockchain::AddressType,
     (hsr_address)
     (contract_address)
     (script_id)
+	(multisig_address)
     )
 
     FC_REFLECT(hsrcore::blockchain::Address, (addr))

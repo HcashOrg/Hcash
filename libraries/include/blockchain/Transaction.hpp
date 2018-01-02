@@ -57,6 +57,8 @@ namespace hsrcore {
 
             void withdraw(const BalanceIdType& account, ShareType amount);
 
+			void receive_from_genesis(const BalanceIdType& account,
+				ShareType             amount, std::vector<char> claim_input_data);
             void withdraw_from_contract(const BalanceIdType& account, ShareType amount, const ContractIdType& contract_id);
 
             void withdraw_pay(const AccountIdType account, ShareType amount);

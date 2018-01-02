@@ -689,6 +689,37 @@ namespace hsrcore {
                 return *builder;
             }
 
+			TransactionBuilder detail::ClientImpl::wallet_receive_genesis_multisig_blanace(
+				const Address& from_address,
+				const std::string& from_address_redeemscript,
+				const string& to,
+				const VoteStrategy& strategy,
+				bool sign,
+				const string& builder_path)
+			{
+				Address to_address;
+				try {
+					auto acct = _wallet->get_account(to);
+					to_address = acct.owner_address();
+				}
+				catch (...) {
+					to_address = Address(to);
+				}
+				auto builder = _wallet->create_transaction_builder();
+				auto fee = _wallet->get_transaction_fee();
+				Asset ugly_asset;
+
+				builder->receive_from_genesis_balance(from_address, from_address_redeemscript, ugly_asset);
+				builder->deposit_to_balance(to_address, ugly_asset - fee);
+				builder->finalize(false, strategy);
+				if (sign)
+				{
+					builder->sign();
+					network_broadcast_transaction(builder->transaction_entry.trx);
+				}
+				_wallet->write_latest_builder(*builder, builder_path);
+				return *builder;
+			}
    
             WalletTransactionEntry detail::ClientImpl::wallet_asset_create(
                 const string& symbol,

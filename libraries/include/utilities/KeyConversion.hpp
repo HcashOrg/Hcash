@@ -10,6 +10,7 @@ namespace hsrcore {
         std::string                        key_to_wif_single_hash(const fc::ecc::private_key& key);
         std::string                        key_to_wif(const fc::ecc::private_key& key);
         fc::optional<fc::ecc::private_key> wif_to_key(const std::string& wif_key);
+		bool							   redeem_decode(std::vector<char> redeem_data, int& required, int& total, std::vector<fc::ecc::public_key>& all_public_keys);
 
     }
 } // end namespace hsrcore::utilities

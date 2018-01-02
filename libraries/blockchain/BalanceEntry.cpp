@@ -38,6 +38,7 @@ namespace hsrcore {
             case withdraw_signature_type:
             case withdraw_escrow_type:
             case withdraw_multisig_type:
+			case withdraw_p2sh_multisig_type:
             {
                 return Asset(balance, condition.asset_id);
             }
@@ -73,6 +74,7 @@ namespace hsrcore {
                 case withdraw_signature_type:
                 case withdraw_multisig_type:
                 case withdraw_escrow_type:
+				case withdraw_p2sh_multisig_type:
                     break;
                 default:
                     FC_CAPTURE_AND_THROW(invalid_withdraw_condition);

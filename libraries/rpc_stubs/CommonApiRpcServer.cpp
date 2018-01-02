@@ -5658,6 +5658,64 @@ namespace hsrcore {
             return fc::variant(result);
         }
 
+        fc::variant CommonApiRpcServer::wallet_receive_genesis_multisig_blanace_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters)
+        {
+            // check all of this method's prerequisites
+            verify_json_connection_is_authenticated(json_connection);
+            // done checking prerequisites
+
+            if (parameters.size() <= 0)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 1 (from_address)");
+            hsrcore::blockchain::Address from_address = parameters[0].as<hsrcore::blockchain::Address>();
+            if (parameters.size() <= 1)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 2 (from_address_redeemscript)");
+            std::string from_address_redeemscript = parameters[1].as<std::string>();
+            if (parameters.size() <= 2)
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 3 (to)");
+            std::string to = parameters[2].as<std::string>();
+            hsrcore::wallet::VoteStrategy strategy = (parameters.size() <= 3) ?
+            (fc::json::from_string("\"vote_none\"").as<hsrcore::wallet::VoteStrategy>()) :
+            parameters[3].as<hsrcore::wallet::VoteStrategy>();
+            bool sign_and_broadcast = (parameters.size() <= 4) ?
+            (fc::json::from_string("true").as<bool>()) :
+            parameters[4].as<bool>();
+            std::string builder_path = (parameters.size() <= 5) ?
+            (fc::json::from_string("\"\"").as<std::string>()) :
+            parameters[5].as<std::string>();
+
+            hsrcore::wallet::TransactionBuilder result = get_client()->wallet_receive_genesis_multisig_blanace(from_address, from_address_redeemscript, to, strategy, sign_and_broadcast, builder_path);
+            return fc::variant(result);
+        }
+
+        fc::variant CommonApiRpcServer::wallet_receive_genesis_multisig_blanace_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters)
+        {
+            // check all of this method's prerequisites
+            verify_json_connection_is_authenticated(json_connection);
+            // done checking prerequisites
+
+            if (!parameters.contains("from_address"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'from_address'");
+            hsrcore::blockchain::Address from_address = parameters["from_address"].as<hsrcore::blockchain::Address>();
+            if (!parameters.contains("from_address_redeemscript"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'from_address_redeemscript'");
+            std::string from_address_redeemscript = parameters["from_address_redeemscript"].as<std::string>();
+            if (!parameters.contains("to"))
+                FC_THROW_EXCEPTION(fc::invalid_arg_exception, "missing required parameter 'to'");
+            std::string to = parameters["to"].as<std::string>();
+            hsrcore::wallet::VoteStrategy strategy = parameters.contains("strategy") ?
+                (fc::json::from_string("\"vote_none\"").as<hsrcore::wallet::VoteStrategy>()) :
+                parameters["strategy"].as<hsrcore::wallet::VoteStrategy>();
+            bool sign_and_broadcast = parameters.contains("sign_and_broadcast") ?
+                (fc::json::from_string("true").as<bool>()) :
+                parameters["sign_and_broadcast"].as<bool>();
+            std::string builder_path = parameters.contains("builder_path") ?
+                (fc::json::from_string("\"\"").as<std::string>()) :
+                parameters["builder_path"].as<std::string>();
+
+            hsrcore::wallet::TransactionBuilder result = get_client()->wallet_receive_genesis_multisig_blanace(from_address, from_address_redeemscript, to, strategy, sign_and_broadcast, builder_path);
+            return fc::variant(result);
+        }
+
         fc::variant CommonApiRpcServer::wallet_multisig_withdraw_start_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters)
         {
             // check all of this method's prerequisites
@@ -10351,6 +10409,16 @@ namespace hsrcore {
                 this, capture_con, _1);
             json_connection->add_named_param_method("wallet_import_multisig_account_by_detail", bound_named_method);
 
+           // register method wallet_receive_genesis_multisig_blanace
+            bound_positional_method = boost::bind(&CommonApiRpcServer::wallet_receive_genesis_multisig_blanace_positional,
+                this, capture_con, _1);
+            json_connection->add_method("wallet_receive_genesis_multisig_blanace", bound_positional_method);
+            json_connection->add_method("receive_from_genesis_address", bound_positional_method);
+            bound_named_method = boost::bind(&CommonApiRpcServer::wallet_receive_genesis_multisig_blanace_named, 
+                this, capture_con, _1);
+            json_connection->add_named_param_method("wallet_receive_genesis_multisig_blanace", bound_named_method);
+            json_connection->add_named_param_method("receive_from_genesis_address", bound_named_method);
+
            // register method wallet_multisig_withdraw_start
             bound_positional_method = boost::bind(&CommonApiRpcServer::wallet_multisig_withdraw_start_positional,
                 this, capture_con, _1);
@@ -13571,6 +13639,25 @@ namespace hsrcore {
             }
 
             {
+                // register method wallet_receive_genesis_multisig_blanace
+                hsrcore::api::MethodData wallet_receive_genesis_multisig_blanace_method_metadata{ "wallet_receive_genesis_multisig_blanace", nullptr,
+                    /* description */ "",
+                    /* returns */ "transaction_builder",
+                    /* params: */{
+                        {"from_address", "address", hsrcore::api::required_positional, fc::ovariant()},
+                        {"from_address_redeemscript", "string", hsrcore::api::required_positional, fc::ovariant()},
+                        {"to", "string", hsrcore::api::required_positional, fc::ovariant()},
+                        {"strategy", "vote_strategy", hsrcore::api::optional_positional, fc::variant(fc::json::from_string("\"vote_none\""))},
+                        {"sign_and_broadcast", "bool", hsrcore::api::optional_positional, fc::variant(fc::json::from_string("true"))},
+                        {"builder_path", "string", hsrcore::api::optional_positional, fc::variant(fc::json::from_string("\"\""))}
+                          },
+                    /* prerequisites */ (hsrcore::api::MethodPrerequisites) 1,
+                    /* detailed description */ "\n\nParameters:\n  from_address (address, required): old btc multisig address\n  from_address_redeemscript (string, required): old btc multisig address redeemscript\n  to (string, required): address or account to receive funds\n  strategy (vote_strategy, optional, defaults to \"vote_none\"): enumeration [vote_recommended | vote_all | vote_none]\n  sign_and_broadcast (bool, optional, defaults to true): \n  builder_path (string, optional, defaults to \"\"): If specified, will write builder here instead of to DATA_DIR/transactions/latest.trx\n\nReturns:\n  transaction_builder\n",
+                    /* aliases */ {"receive_from_genesis_address"}, false};
+                store_method_metadata(wallet_receive_genesis_multisig_blanace_method_metadata);
+            }
+
+            {
                 // register method wallet_multisig_withdraw_start
                 hsrcore::api::MethodData wallet_multisig_withdraw_start_method_metadata{ "wallet_multisig_withdraw_start", nullptr,
                     /* description */ "transfer to normal account from multisig account",
@@ -15186,6 +15273,8 @@ namespace hsrcore {
                 return wallet_import_multisig_account_positional(nullptr, parameters);
             if (method_name == "wallet_import_multisig_account_by_detail")
                 return wallet_import_multisig_account_by_detail_positional(nullptr, parameters);
+            if (method_name == "wallet_receive_genesis_multisig_blanace")
+                return wallet_receive_genesis_multisig_blanace_positional(nullptr, parameters);
             if (method_name == "wallet_multisig_withdraw_start")
                 return wallet_multisig_withdraw_start_positional(nullptr, parameters);
             if (method_name == "wallet_create_multisig_account")

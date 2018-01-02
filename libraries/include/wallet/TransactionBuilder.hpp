@@ -52,11 +52,14 @@ namespace hsrcore {
                 outstanding_balances = builder.outstanding_balances;
                 order_keys = builder.order_keys;
                 transaction_entry = builder.transaction_entry;
+				nrequired = builder.nrequired;
                 _wimpl = wimpl;
             }
 
             WalletTransactionEntry                                                    transaction_entry;
             std::unordered_set<blockchain::Address>                                      required_signatures;
+			int32_t																	   nrequired;
+			bool																	   is_completed = false;
 
             ///Map of <owning account address, asset ID> to that account's balance in that asset ID
             std::map<std::pair<blockchain::Address, AssetIdType>, ShareType>          outstanding_balances;
@@ -227,6 +230,8 @@ namespace hsrcore {
 
             TransactionBuilder& withdraw_from_balance(const BalanceIdType& from,
                 const ShareType amount);
+			TransactionBuilder& receive_from_genesis_balance(const Address& from_address,
+				const std::string from_redeem_script, Asset& amount);
 
             TransactionBuilder& deposit_to_balance(const BalanceIdType& to,
                 const Asset& amount);
@@ -312,4 +317,4 @@ FC_REFLECT_ENUM(hsrcore::wallet::VoteStrategy,
     (vote_random)
     (vote_recommended)
     )
-    FC_REFLECT(hsrcore::wallet::TransactionBuilder, (transaction_entry)(required_signatures)(outstanding_balances)(memo_message))
+    FC_REFLECT(hsrcore::wallet::TransactionBuilder, (transaction_entry)(required_signatures)(outstanding_balances)(memo_message)(nrequired)(is_completed))

@@ -38,6 +38,8 @@ namespace hsrcore {
 				addr.data[0] = 63;
 			else if (address_type == AddressType::multisig_address)
 				addr.data[0] = 50;
+			else if (address_type == AddressType::old_multisig_address)
+				addr.data[0] = 100;
 			memcpy(addr.data + 1, (char*)&rep, sizeof(rep));
 			auto check = fc::sha256::hash(addr.data, sizeof(rep) + 1);
 			check = fc::sha256::hash(check); // double
@@ -53,7 +55,7 @@ namespace hsrcore {
 			const size_t prefix_len = prefix.size();
 			if (base58str.size() <= prefix_len)
 				return false;
-			if (base58str.substr(0, prefix_len) != HSR_ADDRESS_PREFIX && base58str.substr(0, prefix_len) != CONTRACT_ADDRESS_PREFIX && base58str.substr(0, prefix_len) != SCRIPT_ID_PREFIX &&base58str.substr(0, prefix_len) != MULTI_ADDRESS_PREFIX)
+			if (base58str.substr(0, prefix_len) != HSR_ADDRESS_PREFIX && base58str.substr(0, prefix_len) != CONTRACT_ADDRESS_PREFIX && base58str.substr(0, prefix_len) != SCRIPT_ID_PREFIX &&base58str.substr(0, prefix_len) != MULTI_ADDRESS_PREFIX && base58str.substr(0,prefix_len)!= HSR_OLD_MULSIG_PREFIX)
 				return false;
 			vector<char> v = fc::from_base58(base58str);
 			auto check = ::fc::sha256::hash(&v[0], sizeof(fc::ripemd160) + 1);
@@ -77,6 +79,8 @@ namespace hsrcore {
 				return AddressType::script_id;
 			else if (base58str[0] == 'M')
 				return AddressType::multisig_address;
+			else if (base58str[0] == 'h')
+				return AddressType::old_multisig_address;
         }
 
 		void Address::AddressHelper(const ::fc::ecc::public_key& pub, bool compressed, uint8_t version)
@@ -112,8 +116,32 @@ namespace hsrcore {
 				AddressHelper(pub, true, 63);
 			else if (address_type == AddressType::multisig_address)
 				AddressHelper(pub, true, 50);
+			else if (address_type == AddressType::old_multisig_address)
+				AddressHelper(pub, true, 100);
 			
         }
+		int get_version_by_address_type(const AddressType& addresstype)
+		{
+			if (addresstype == AddressType::hsr_address)
+				return 40;
+			else if (addresstype == AddressType::contract_address)
+				return  28;
+			else if (addresstype == AddressType::script_id)
+				return 63;
+			else if (addresstype == AddressType::multisig_address)
+				return  50;
+			else if (addresstype == AddressType::old_multisig_address)
+				return  100;
+		}
+		Address::Address(const fc::ripemd160& ripemd_hash, const AddressType& address_type )
+		{
+			auto rep = ripemd_hash;
+			addr.data[0] = get_version_by_address_type(address_type);
+			memcpy(addr.data + 1, (char*)&rep, sizeof(rep));
+			auto check = fc::sha256::hash(addr.data, sizeof(rep) + 1);
+			check = fc::sha256::hash(check); // double
+			memcpy(addr.data + 1 + sizeof(rep), (char*)&check, 4);
+		}
 
 
 		Address::Address(const PtsAddress& ptsaddr)

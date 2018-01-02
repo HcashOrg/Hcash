@@ -15,7 +15,8 @@ namespace hsrcore {
             withdraw_null_type = 0,
             withdraw_signature_type = 1,
             withdraw_multisig_type = 3,
-            withdraw_escrow_type = 6
+            withdraw_escrow_type = 6,
+			withdraw_p2sh_multisig_type = 7
         };
 
         enum WithdrawBalanceTypes
@@ -163,6 +164,15 @@ namespace hsrcore {
             optional<TransferMemo>    memo;
         };
 
+		struct WithdrawP2shMultisig
+		{
+			WithdrawP2shMultisig(const Address owner_arg = Address())
+				:owner(owner_arg) {}
+			static const uint8_t    type;
+
+			Address                 owner;
+		};
+
         struct withdraw_with_escrow
         {
             static const uint8_t    type;
@@ -202,6 +212,7 @@ FC_REFLECT_ENUM(hsrcore::blockchain::WithdrawConditionTypes,
     (withdraw_signature_type)
     (withdraw_multisig_type)
     (withdraw_escrow_type)
+	(withdraw_p2sh_multisig_type)
     )
     FC_REFLECT_ENUM(hsrcore::blockchain::WithdrawBalanceTypes,
     (withdraw_common_type)
@@ -252,6 +263,10 @@ FC_REFLECT_ENUM(hsrcore::blockchain::WithdrawConditionTypes,
     (owners)
     (memo)
     )
+	FC_REFLECT(hsrcore::blockchain::WithdrawP2shMultisig,
+	(owner)
+	)
+
     FC_REFLECT(hsrcore::blockchain::withdraw_with_escrow,
     (sender)
     (receiver)

@@ -15,6 +15,7 @@
  *
  *  Changing these parameters will result in a hard fork.
  */
+#define HSR_OLD_MULSIG_PREFIX								"h"
 #define HSR_ADDRESS_PREFIX                                  "H"
 #define HSR_BLOCKCHAIN_SYMBOL                               "HSR"
 #define HSR_BLOCKCHAIN_NAME                                 "HSR"
