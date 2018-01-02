@@ -68,6 +68,8 @@ namespace hsrcore {
 		FC_DECLARE_DERIVED_EXCEPTION(too_much_balances_withdraw_not_used_up, hsrcore::blockchain::evaluation_error, 31015, "too much balances withdraw which balance not used up ");
 		FC_DECLARE_DERIVED_EXCEPTION(deposit_to_one_address_twice, hsrcore::blockchain::evaluation_error, 31016, "deposit to one address twice");
 		FC_DECLARE_DERIVED_EXCEPTION(too_much_deposit, hsrcore::blockchain::evaluation_error, 31017, "too much deposit");
+		FC_DECLARE_DERIVED_EXCEPTION(missing_redeem_script, hsrcore::blockchain::evaluation_error, 31018, "missing redeem script");
+		FC_DECLARE_DERIVED_EXCEPTION(invalid_redeem_script, hsrcore::blockchain::evaluation_error, 31019, "invalid redeem script");
 
         FC_DECLARE_DERIVED_EXCEPTION(invalid_account_name, hsrcore::blockchain::evaluation_error, 31101, "invalid account name");
         FC_DECLARE_DERIVED_EXCEPTION(unknown_account_id, hsrcore::blockchain::evaluation_error, 31102, "unknown account id");

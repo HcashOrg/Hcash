@@ -12,6 +12,7 @@ namespace hsrcore {
         const uint8_t WithdrawWithSignature::type = withdraw_signature_type;
         const uint8_t WithdrawWithMultisig::type = withdraw_multisig_type;
         const uint8_t withdraw_with_escrow::type = withdraw_escrow_type;
+		const uint8_t WithdrawP2shMultisig::type = withdraw_p2sh_multisig_type;
 
         MemoStatus::MemoStatus(const ExtendedMemoData& memo, bool valid_signature,
             const fc::ecc::private_key& opk)
@@ -62,6 +63,10 @@ namespace hsrcore {
 				{
 					return Address(*this, AddressType::multisig_address);
 				}
+				if (type == withdraw_p2sh_multisig_type)
+				{
+					return Address(*this, AddressType::old_multisig_address);
+				}
 				return Address(*this);
 			}
 				
@@ -85,6 +90,10 @@ namespace hsrcore {
                 const auto escrow = this->as<withdraw_with_escrow>();
                 return set < Address > { escrow.sender, escrow.receiver, escrow.escrow };
             }
+			case withdraw_p2sh_multisig_type:
+			{
+				return set<Address>{this->as<WithdrawP2shMultisig>().owner};
+			}
             default:
                 return set<Address>();
             }
@@ -96,6 +105,8 @@ namespace hsrcore {
             {
             case withdraw_signature_type:
                 return this->as<WithdrawWithSignature>().owner;
+			case withdraw_p2sh_multisig_type:
+				return this->as<WithdrawP2shMultisig>().owner;
             default:
                 return optional<Address>();
             }
@@ -358,6 +369,9 @@ namespace fc {
         case withdraw_escrow_type:
             obj["data"] = fc::raw::unpack<withdraw_with_escrow>(var.data);
             break;
+		case withdraw_p2sh_multisig_type:
+			obj["data"] = fc::raw::unpack<WithdrawP2shMultisig>(var.data);
+			break;
             // No default to force compiler warning
         }
         vo = std::move(obj);
@@ -391,6 +405,9 @@ namespace fc {
         case withdraw_escrow_type:
             vo.data = fc::raw::pack(obj["data"].as<withdraw_with_escrow>());
             return;
+		case withdraw_p2sh_multisig_type:
+			vo.data = fc::raw::pack(obj["data"].as<WithdrawP2shMultisig>());
+			break;
             // No default to force compiler warning
         }
         FC_ASSERT(false, "Invalid withdraw condition!");

@@ -5223,6 +5223,40 @@ namespace hsrcore {
             FC_RETHROW_EXCEPTIONS(warn, "")
         }
 
+        hsrcore::wallet::TransactionBuilder CommonApiClient::wallet_receive_genesis_multisig_blanace(const hsrcore::blockchain::Address& from_address, const std::string& from_address_redeemscript, const std::string& to, const hsrcore::wallet::VoteStrategy& strategy /* = fc::json::from_string("\"vote_none\"").as<hsrcore::wallet::VoteStrategy>() */, bool sign_and_broadcast /* = fc::json::from_string("true").as<bool>() */, const std::string& builder_path /* = fc::json::from_string("\"\"").as<std::string>() */)
+        {
+            ilog("received RPC call: wallet_receive_genesis_multisig_blanace(${from_address}, ${from_address_redeemscript}, ${to}, ${strategy}, ${sign_and_broadcast}, ${builder_path})", ("from_address", from_address)("from_address_redeemscript", from_address_redeemscript)("to", to)("strategy", strategy)("sign_and_broadcast", sign_and_broadcast)("builder_path", builder_path));
+            hsrcore::api::GlobalApiLogger* glog = hsrcore::api::GlobalApiLogger::get_instance();
+            uint64_t call_id = 0;
+            fc::variants args;
+            if( glog != NULL )
+            {
+                args.push_back( fc::variant(from_address) );
+                args.push_back( fc::variant(from_address_redeemscript) );
+                args.push_back( fc::variant(to) );
+                args.push_back( fc::variant(strategy) );
+                args.push_back( fc::variant(sign_and_broadcast) );
+                args.push_back( fc::variant(builder_path) );
+                call_id = glog->log_call_started( this, "wallet_receive_genesis_multisig_blanace", args );
+            }
+
+            struct scope_exit
+            {
+                fc::time_point start_time;
+                scope_exit() : start_time(fc::time_point::now()) {}
+                ~scope_exit() { dlog("RPC call wallet_receive_genesis_multisig_blanace finished in ${time} ms", ("time", (fc::time_point::now() - start_time).count() / 1000)); }
+            } execution_time_logger;
+            try
+            {
+                hsrcore::wallet::TransactionBuilder result =             get_impl()->wallet_receive_genesis_multisig_blanace(from_address, from_address_redeemscript, to, strategy, sign_and_broadcast, builder_path);
+                if( call_id != 0 )
+                    glog->log_call_finished( call_id, this, "wallet_receive_genesis_multisig_blanace", args, fc::variant(result) );
+
+                return result;
+            }
+            FC_RETHROW_EXCEPTIONS(warn, "")
+        }
+
         hsrcore::wallet::TransactionBuilder CommonApiClient::wallet_multisig_withdraw_start(const std::string& amount, const std::string& asset_symbol, const hsrcore::blockchain::Address& from, const hsrcore::blockchain::Address& to_address, const hsrcore::blockchain::Imessage& memo_message /* = fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>() */, const hsrcore::blockchain::FilePath& builder_path /* = fc::json::from_string("\"\"").as<hsrcore::blockchain::FilePath>() */)
         {
             ilog("received RPC call: wallet_multisig_withdraw_start(${amount}, ${asset_symbol}, ${from}, ${to_address}, ${memo_message}, ${builder_path})", ("amount", amount)("asset_symbol", asset_symbol)("from", from)("to_address", to_address)("memo_message", memo_message)("builder_path", builder_path));

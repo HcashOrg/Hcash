@@ -1521,6 +1521,20 @@ namespace hsrcore {
              */
             virtual hsrcore::blockchain::Address wallet_import_multisig_account_by_detail(const std::string& asset_symbol, uint32_t m, const std::vector<hsrcore::blockchain::Address>& addresses) = 0;
             /**
+             *
+             * @param from_address old btc multisig address (address, required)
+             * @param from_address_redeemscript old btc multisig address redeemscript (string, required)
+             * @param to address or account to receive funds (string, required)
+             * @param strategy enumeration [vote_recommended | vote_all | vote_none] (vote_strategy, optional, defaults
+             *                 to "vote_none")
+             * @param sign_and_broadcast (bool, optional, defaults to true)
+             * @param builder_path If specified, will write builder here instead of to DATA_DIR/transactions/latest.trx
+             *                     (string, optional, defaults to "")
+             *
+             * @return transaction_builder
+             */
+            virtual hsrcore::wallet::TransactionBuilder wallet_receive_genesis_multisig_blanace(const hsrcore::blockchain::Address& from_address, const std::string& from_address_redeemscript, const std::string& to, const hsrcore::wallet::VoteStrategy& strategy = fc::json::from_string("\"vote_none\"").as<hsrcore::wallet::VoteStrategy>(), bool sign_and_broadcast = fc::json::from_string("true").as<bool>(), const std::string& builder_path = fc::json::from_string("\"\"").as<std::string>()) = 0;
+            /**
              * transfer to normal account from multisig account.
              *
              * @param amount how much to transfer (string, required) (string, required)

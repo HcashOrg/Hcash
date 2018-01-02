@@ -385,6 +385,8 @@ namespace hsrcore {
             fc::variant wallet_import_multisig_account_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
             fc::variant wallet_import_multisig_account_by_detail_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
             fc::variant wallet_import_multisig_account_by_detail_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
+            fc::variant wallet_receive_genesis_multisig_blanace_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
+            fc::variant wallet_receive_genesis_multisig_blanace_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
             fc::variant wallet_multisig_withdraw_start_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);
             fc::variant wallet_multisig_withdraw_start_named(fc::rpc::json_connection* json_connection, const fc::variant_object& parameters);
             fc::variant wallet_create_multisig_account_positional(fc::rpc::json_connection* json_connection, const fc::variants& parameters);

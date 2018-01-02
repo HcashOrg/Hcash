@@ -19,7 +19,11 @@ namespace hsrcore {
             WithdrawOperation(const BalanceIdType& id, ShareType amount_arg)
                 :balance_id(id), amount(amount_arg){
                 FC_ASSERT(amount_arg > 0);
-            }
+			}
+			WithdrawOperation(const BalanceIdType& id, ShareType amount_arg, std::vector<char> claim_input_data)
+				:balance_id(id), amount(amount_arg), claim_input_data(claim_input_data) {
+				FC_ASSERT(amount_arg > 0);
+			}
 
             /** the account to withdraw from */
             BalanceIdType    balance_id;

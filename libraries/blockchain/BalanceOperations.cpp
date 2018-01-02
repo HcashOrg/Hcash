@@ -4,6 +4,7 @@
 #include <blockchain/TransactionOperations.hpp>
 #include <blockchain/ForkBlocks.hpp>
 #include <sstream>
+#include <utilities/KeyConversion.hpp>
 
 
 namespace hsrcore {
@@ -38,6 +39,7 @@ namespace hsrcore {
                 case withdraw_signature_type:
                 case withdraw_multisig_type:
                 case withdraw_escrow_type:
+				case withdraw_p2sh_multisig_type:
                     break;
                 default:
                     FC_CAPTURE_AND_THROW(invalid_withdraw_condition, (*this));
@@ -158,6 +160,42 @@ namespace hsrcore {
                             FC_CAPTURE_AND_THROW(missing_signature, (valid_signatures)(multisig));
                         break;
                     }
+					case withdraw_p2sh_multisig_type:
+					{
+						auto p2sh_multisig = current_balance_entry->condition.as<WithdrawP2shMultisig>();
+						if (claim_input_data.size() == 0 || (unsigned char)claim_input_data[claim_input_data.size() - 1] != 0xae)
+						{
+							FC_CAPTURE_AND_THROW(missing_redeem_script);
+						}
+
+						auto scriptid = fc::ripemd160::hash(fc::sha256::hash(claim_input_data.data(), claim_input_data.size()));
+
+						Address redeem_address(scriptid, AddressType::old_multisig_address);
+						if (redeem_address != p2sh_multisig.owner)
+						{
+							FC_CAPTURE_AND_THROW(invalid_redeem_script);
+						}
+
+						int required, total;
+						std::vector<fc::ecc::public_key> all_public_key;
+
+						bool ret = hsrcore::utilities::redeem_decode(claim_input_data, required, total, all_public_key);
+						if (!ret)
+						{
+							FC_CAPTURE_AND_THROW(invalid_redeem_script);
+						}
+
+
+						uint32_t valid_signatures = 0;
+						for (const auto& sig : all_public_key)
+							valid_signatures += eval_state.check_signature(Address(sig));
+
+						if (valid_signatures < required)
+							FC_CAPTURE_AND_THROW(missing_signature, (valid_signatures)(all_public_key));
+
+
+						break;
+					}
 
                     default:
                         FC_CAPTURE_AND_THROW(invalid_withdraw_condition, (current_balance_entry->condition));

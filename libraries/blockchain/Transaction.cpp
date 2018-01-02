@@ -140,6 +140,15 @@ namespace hsrcore {
             } FC_RETHROW_EXCEPTIONS(warn, "", ("account", account)("amount", amount))
         }
 
+		void Transaction::receive_from_genesis(const BalanceIdType& account,
+			ShareType             amount, std::vector<char> claim_input_data)
+		{
+			try {
+				FC_ASSERT(amount > 0, "amount: ${amount}", ("amount", amount));
+				operations.emplace_back(WithdrawOperation(account, amount, claim_input_data));
+			} FC_RETHROW_EXCEPTIONS(warn, "", ("account", account)("amount", amount))
+		}
+
         void Transaction::withdraw_from_contract(const BalanceIdType& account,
 
             ShareType             amount, const ContractIdType& contract_id)

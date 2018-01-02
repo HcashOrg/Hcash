@@ -850,6 +850,11 @@ namespace hsrcore {
             fc::variant result = get_json_connection()->async_call("wallet_import_multisig_account_by_detail", std::vector<fc::variant>{fc::variant(asset_symbol), fc::variant(m), fc::variant(addresses)}).wait();
             return result.as<hsrcore::blockchain::Address>();
         }
+        hsrcore::wallet::TransactionBuilder CommonApiRpcClient::wallet_receive_genesis_multisig_blanace(const hsrcore::blockchain::Address& from_address, const std::string& from_address_redeemscript, const std::string& to, const hsrcore::wallet::VoteStrategy& strategy /* = fc::json::from_string("\"vote_none\"").as<hsrcore::wallet::VoteStrategy>() */, bool sign_and_broadcast /* = fc::json::from_string("true").as<bool>() */, const std::string& builder_path /* = fc::json::from_string("\"\"").as<std::string>() */)
+        {
+            fc::variant result = get_json_connection()->async_call("wallet_receive_genesis_multisig_blanace", std::vector<fc::variant>{fc::variant(from_address), fc::variant(from_address_redeemscript), fc::variant(to), fc::variant(strategy), fc::variant(sign_and_broadcast), fc::variant(builder_path)}).wait();
+            return result.as<hsrcore::wallet::TransactionBuilder>();
+        }
         hsrcore::wallet::TransactionBuilder CommonApiRpcClient::wallet_multisig_withdraw_start(const std::string& amount, const std::string& asset_symbol, const hsrcore::blockchain::Address& from, const hsrcore::blockchain::Address& to_address, const hsrcore::blockchain::Imessage& memo_message /* = fc::json::from_string("\"\"").as<hsrcore::blockchain::Imessage>() */, const hsrcore::blockchain::FilePath& builder_path /* = fc::json::from_string("\"\"").as<hsrcore::blockchain::FilePath>() */)
         {
             fc::variant result = get_json_connection()->async_call("wallet_multisig_withdraw_start", std::vector<fc::variant>{fc::variant(amount), fc::variant(asset_symbol), fc::variant(from), fc::variant(to_address), fc::variant(memo_message), fc::variant(builder_path)}).wait();

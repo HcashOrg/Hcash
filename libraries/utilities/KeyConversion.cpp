@@ -54,5 +54,46 @@ namespace hsrcore {
             return fc::optional<fc::ecc::private_key>();
         }
 
+		bool redeem_decode(std::vector<char> redeem_data, int& required, int& total, std::vector<fc::ecc::public_key>& all_public_keys)
+		{
+			std::vector <unsigned char> redeem_change_data;
+			redeem_change_data.assign(redeem_data.begin(), redeem_data.end());
+			if (redeem_change_data.size() == 0 || redeem_change_data[redeem_change_data.size() - 1] != 0xae)
+			{
+				return false;
+			}
+			int pos = 0;
+			required = redeem_change_data[pos++] - 0x51 + 1;
+			total = redeem_change_data[redeem_change_data.size() - 2] - 0x51 + 1;
+			if (required <= 0 || required > 16 || required > total)
+			{
+				return false;
+			}
+
+			for (int i = 0; i < total; ++i)
+			{
+				unsigned int len = redeem_change_data[pos++];
+				if (len == 33)
+				{
+					fc::ecc::public_key_data temp_data;
+					memcpy(&temp_data, &redeem_change_data[pos], len * sizeof(char));
+					all_public_keys.push_back(fc::ecc::public_key(temp_data));
+					pos += len;
+				}
+				else if (len == 65)
+				{
+					fc::ecc::public_key_point_data temp_data;
+					memcpy(&temp_data, &redeem_change_data[pos], len * sizeof(char));
+					pos += len;
+					all_public_keys.push_back(fc::ecc::public_key(temp_data));
+				}
+			}
+			if (pos != redeem_change_data.size() - 2 || all_public_keys.size() != total)
+			{
+				return false;
+			}
+			return true;
+		}
+
     }
 } // end namespace hsrcore::utilities
