@@ -7,10 +7,10 @@ The official website of Hcash Https://h.cash
 wallet use tutorial:
 
 
-English : https://github.com/HcashOrg/Hcash/blob/master/wallet%20use%20tutorial.docx
+English : [wallet use tutorial](https://github.com/HcashOrg/Hcash/blob/master/wallet%20use%20tutorial.docx)
 
 
-Chinese : https://github.com/HcashOrg/Hcash/blob/master/%E9%92%B1%E5%8C%85%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B.docx
+Chinese : [钱包使用教程](https://github.com/HcashOrg/Hcash/blob/master/%E9%92%B1%E5%8C%85%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B.docx)
 
 
 What is Hcash?
