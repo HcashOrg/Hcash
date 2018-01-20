@@ -47,7 +47,7 @@ namespace fc { namespace http {
           fc::shared_ptr<impl> my;
       };
 
-      void listen( const fc::ip::endpoint& p, std::vector<std::string>allow_ips);
+      void listen( const fc::ip::endpoint& p, std::vector<std::string>allow_ips = std::vector<std::string>());
       fc::ip::endpoint get_local_endpoint() const;
 
       /**
