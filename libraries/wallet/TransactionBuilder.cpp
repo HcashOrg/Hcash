@@ -525,13 +525,14 @@ WalletTransactionEntry& TransactionBuilder::sign()
 {
     try {
         const auto chain_id = _wimpl->_blockchain->get_chain_id();
-
+		int i = 0;
         for (const auto& address : required_signatures)
         {
             //Ignore exceptions; this function operates on a best-effort basis, and doesn't actually have to succeed.
             try {
                 ilog("@n trying to sign for address ${a}", ("a", address));
                 trx.sign(_wimpl->self->get_private_key(address), chain_id);
+				++i;
                 ilog("@n    and I succeeded");
             }
             catch (const fc::exception& e)
@@ -544,6 +545,7 @@ WalletTransactionEntry& TransactionBuilder::sign()
 		{
 			is_completed = true;
 		}
+		FC_ASSERT(i > 0, "sign failed maybe you didn't having required priv key!");
 
         return transaction_entry;
     } FC_CAPTURE_AND_RETHROW()
