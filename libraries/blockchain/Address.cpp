@@ -8,7 +8,12 @@ namespace hsrcore {
     namespace blockchain {
 		
 
-        Address::Address(){}
+        Address::Address(){
+			fc::ripemd160 temp_ripe;
+			auto temp_addr = Address(temp_ripe, AddressType::hsr_address);
+			this->addr = temp_addr.addr;
+
+		}
 
         Address::Address(const std::string& base58str, const AddressType& address_type)
         {
