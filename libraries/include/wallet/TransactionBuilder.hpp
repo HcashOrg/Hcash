@@ -69,6 +69,8 @@ namespace hsrcore {
 
 			std::string																   memo_message;
 
+			std::string																   error_message;
+
 
 
 
@@ -317,4 +319,4 @@ FC_REFLECT_ENUM(hsrcore::wallet::VoteStrategy,
     (vote_random)
     (vote_recommended)
     )
-    FC_REFLECT(hsrcore::wallet::TransactionBuilder, (transaction_entry)(required_signatures)(outstanding_balances)(memo_message)(nrequired)(is_completed))
+    FC_REFLECT(hsrcore::wallet::TransactionBuilder, (transaction_entry)(required_signatures)(outstanding_balances)(memo_message)(error_message)(nrequired)(is_completed))

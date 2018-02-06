@@ -168,6 +168,7 @@ namespace hsrcore {
 
         void Transaction::deposit(const Address& owner, const Asset& amount)
         {
+			
             FC_ASSERT(amount.amount > 0, "amount: ${amount}", ("amount", amount));
             operations.emplace_back(DepositOperation(owner, amount));
         }

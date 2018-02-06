@@ -1217,6 +1217,9 @@ namespace hsrcore {
 						try {
 							network_broadcast_transaction(new_builder->transaction_entry.trx);
 						}
+						catch (fc::exception& ex) {
+							new_builder->error_message = ex.to_detail_string();
+						}
 						catch (...) {
 							ulog("I tried to broadcast the transaction but it was not valid.");
 						}
@@ -1258,6 +1261,9 @@ namespace hsrcore {
 					{
 						try {
 							network_broadcast_transaction(new_builder->transaction_entry.trx);
+						}
+						catch (fc::exception& ex) {
+							new_builder->error_message = ex.to_detail_string();
 						}
 						catch (...) {
 							ulog("I tried to broadcast the transaction but it was not valid.");
